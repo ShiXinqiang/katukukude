@@ -30,10 +30,59 @@ export type View =
 
 export type MainTab = "home" | "discover" | "scan" | "messages" | "profile";
 
+export type UserRole = "user" | "admin";
+
 export type AuthUser = {
   id: string;
   username: string;
   displayName: string;
+  role: UserRole;
+  createdAt: string;
+};
+
+export type AdminOverview = {
+  users: number;
+  activeSessions: number;
+  orders: number;
+  broadcasts: number;
+  notifications: number;
+};
+
+export type AdminUserRecord = {
+  id: string;
+  username: string;
+  displayName: string;
+  role: UserRole;
+  createdAt: string;
+};
+
+export type AdminOrderRecord = {
+  id: string;
+  orderNo: string;
+  userId: string | null;
+  username: string | null;
+  displayName: string | null;
+  status: string;
+  paymentStatus: string;
+  totalAmount: string;
+  paidAmount: string | null;
+  transactionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminOrderDetail = AdminOrderRecord & {
+  shippingName: string | null;
+  shippingPhone: string | null;
+  shippingAddress: string | null;
+  items: unknown;
+};
+
+export type AdminBroadcastRecord = {
+  id: string;
+  title: string;
+  content: string;
+  recipientCount: number;
   createdAt: string;
 };
 
@@ -65,15 +114,6 @@ export type CartItem = {
   unit: number;
   quantity: number;
   imageLabel: string;
-};
-
-export type MessageItem = {
-  name: string;
-  time: string;
-  preview: string;
-  unread: boolean;
-  icon: LucideIcon;
-  tone: string;
 };
 
 export const formatMoney = (value: number) =>
@@ -136,5 +176,3 @@ export const discoverPosts: Array<{
 }> = [];
 
 export const initialCartItems: CartItem[] = [];
-
-export const messageItems: MessageItem[] = [];

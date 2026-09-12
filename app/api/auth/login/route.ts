@@ -39,10 +39,11 @@ export async function POST(request: Request) {
       id: string;
       username: string;
       display_name: string;
+      role: string;
       password_hash: string;
       created_at: Date | string;
     }>(
-      `SELECT id, username, display_name, password_hash, created_at
+      `SELECT id, username, display_name, role, password_hash, created_at
        FROM users WHERE username = $1 LIMIT 1`,
       [username],
     );

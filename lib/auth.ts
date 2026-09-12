@@ -7,7 +7,7 @@ import {
   timingSafeEqual,
 } from "node:crypto";
 import { promisify } from "node:util";
-import type { AuthUser } from "./data";
+import type { AuthUser, UserRole } from "./data";
 import { getDatabase } from "./db";
 
 const scrypt = promisify(scryptCallback);
@@ -18,6 +18,7 @@ type UserRow = {
   id: string;
   username: string;
   display_name: string;
+  role: UserRole | string;
   password_hash: string;
   created_at: Date | string;
 };
@@ -56,9 +57,13 @@ export async function ensureAuthSchema() {
       id TEXT PRIMARY KEY,
       username VARCHAR(64) NOT NULL UNIQUE,
       display_name VARCHAR(80) NOT NULL,
+      role VARCHAR(16) NOT NULL DEFAULT 'user',
       password_hash TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS role VARCHAR(16) NOT NULL DEFAULT 'user';
 
     CREATE TABLE IF NOT EXISTS sessions (
       token_hash TEXT PRIMARY KEY,
@@ -79,6 +84,7 @@ export function toAuthUser(row: UserRow): AuthUser {
     id: row.id,
     username: row.username,
     displayName: row.display_name,
+    role: row.role === "admin" ? "admin" : "user",
     createdAt: new Date(row.created_at).toISOString(),
   };
 }
@@ -118,7 +124,7 @@ export async function getCurrentUser() {
 
   const database = await ensureAuthSchema();
   const result = await database.query<UserRow>(
-    `SELECT u.id, u.username, u.display_name, u.password_hash, u.created_at
+    `SELECT u.id, u.username, u.display_name, u.role, u.password_hash, u.created_at
      FROM sessions s
      INNER JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = $1 AND s.expires_at > NOW()

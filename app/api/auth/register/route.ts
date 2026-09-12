@@ -81,6 +81,7 @@ export async function POST(request: Request) {
           id: user.id,
           username: user.username,
           displayName: user.displayName,
+          role: "user",
           createdAt: new Date().toISOString(),
         },
       },

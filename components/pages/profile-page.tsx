@@ -14,6 +14,7 @@ import {
   Bookmark,
   ChevronRight,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 import type { AuthUser, View } from "../../lib/data";
 import { IconListRow, SkeletonImage } from "../ui";
@@ -146,6 +147,15 @@ export function ProfilePage({
           <IconListRow icon={MapPin} label="地址管理" />
           <IconListRow icon={Headphones} label="官方客服" />
           <IconListRow icon={UserRound} label="关于我们" divider={false} />
+          {user?.role === "admin" && (
+            <IconListRow
+              icon={ShieldCheck}
+              label="管理后台"
+              onClick={() => {
+                window.location.assign("/admin");
+              }}
+            />
+          )}
           {user && (
             <IconListRow
               icon={LogOut}
