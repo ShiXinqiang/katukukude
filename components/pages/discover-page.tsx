@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Heart } from "lucide-react";
+import { Compass, Heart, Search } from "lucide-react";
 import { discoverPosts, discoverTabs } from "../../lib/data";
 import { SkeletonImage } from "../ui";
 
@@ -48,8 +48,21 @@ export function DiscoverPage({
         </div>
       </header>
 
-      <section className="mt-4 columns-2 gap-3 px-3">
-        {discoverPosts.map((post) => (
+      {discoverPosts.length === 0 ? (
+        <section className="mx-4 mt-16 flex flex-col items-center rounded-2xl bg-white px-5 py-12 text-center shadow-sm">
+          <span className="flex size-16 items-center justify-center rounded-full bg-[#edf1f3] text-[#8195a7]">
+            <Compass size={31} strokeWidth={1.4} />
+          </span>
+          <h2 className="mt-4 text-base font-semibold text-slate-700">
+            暂无内容
+          </h2>
+          <p className="mt-2 text-xs text-slate-400">
+            内容发布后会显示在这里
+          </p>
+        </section>
+      ) : (
+        <section className="mt-4 columns-2 gap-3 px-3">
+          {discoverPosts.map((post) => (
           <article
             key={post.id}
             className="mb-3 break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm"
@@ -83,8 +96,9 @@ export function DiscoverPage({
               </span>
             </div>
           </article>
-        ))}
-      </section>
+          ))}
+        </section>
+      )}
     </main>
   );
 }

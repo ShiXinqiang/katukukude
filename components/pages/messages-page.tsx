@@ -1,6 +1,9 @@
 "use client";
 
-import { BellRing, Gift, Heart, MessageCircle, MoreHorizontal, TicketPercent, Truck } from "lucide-react";
+import {
+  Inbox,
+  MoreHorizontal,
+} from "lucide-react";
 import { messageItems, messageTypes } from "../../lib/data";
 
 export function MessagesPage() {
@@ -39,8 +42,21 @@ export function MessagesPage() {
       </section>
 
       <section className="mt-6 px-4">
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-          {messageItems.map((message, index) => {
+        {messageItems.length === 0 ? (
+          <div className="flex flex-col items-center rounded-2xl bg-white px-5 py-12 text-center shadow-sm">
+            <span className="flex size-16 items-center justify-center rounded-full bg-[#edf1f3] text-[#8195a7]">
+              <Inbox size={31} strokeWidth={1.4} />
+            </span>
+            <h2 className="mt-4 text-base font-semibold text-slate-700">
+              暂无消息
+            </h2>
+            <p className="mt-2 text-xs text-slate-400">
+              新消息会显示在这里
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+            {messageItems.map((message, index) => {
             const Icon = message.icon;
 
             return (
@@ -78,8 +94,9 @@ export function MessagesPage() {
                 </span>
               </button>
             );
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </section>
     </main>
   );

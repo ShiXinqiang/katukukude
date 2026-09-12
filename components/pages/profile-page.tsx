@@ -4,6 +4,7 @@ import {
   CreditCard,
   Headphones,
   Heart,
+  LogOut,
   MapPin,
   Package,
   Star,
@@ -14,21 +15,23 @@ import {
   ChevronRight,
   Settings,
 } from "lucide-react";
-import type { View } from "../../lib/data";
+import type { AuthUser, View } from "../../lib/data";
 import { IconListRow, SkeletonImage } from "../ui";
 
 export function ProfilePage({
   onNavigate,
-  isLoggedIn,
+  onLogout,
+  user,
 }: {
   onNavigate: (view: View) => void;
-  isLoggedIn: boolean;
+  onLogout: () => void;
+  user: AuthUser | null;
 }) {
   const orders = [
-    { label: "待付款", icon: CreditCard, count: 2 },
-    { label: "待发货", icon: Package, count: 1 },
+    { label: "待付款", icon: CreditCard, count: 0 },
+    { label: "待发货", icon: Package, count: 0 },
     { label: "配送中", icon: Truck, count: 0 },
-    { label: "待评价", icon: Star, count: 3 },
+    { label: "待评价", icon: Star, count: 0 },
   ];
 
   return (
@@ -40,7 +43,7 @@ export function ProfilePage({
         <div className="relative flex items-start justify-between">
           <button
             type="button"
-            onClick={() => !isLoggedIn && onNavigate("login")}
+            onClick={() => !user && onNavigate("login")}
             className="flex items-center gap-3 text-left"
           >
             <SkeletonImage
@@ -49,10 +52,10 @@ export function ProfilePage({
             />
             <span>
               <span className="block text-lg font-bold">
-                {isLoggedIn ? "平安用户" : "登录 / 注册"}
+                {user ? user.displayName : "登录 / 注册"}
               </span>
               <span className="mt-1 block text-xs text-white/70">
-                {isLoggedIn ? "卡兔会员 ID：882016" : "登录后享受更多权益"}
+                {user ? `账号：${user.username}` : "登录后享受更多权益"}
               </span>
             </span>
           </button>
@@ -106,12 +109,12 @@ export function ProfilePage({
           <div className="rounded-2xl bg-white p-4 shadow-sm">
             <Heart size={20} className="text-[#d68178]" />
             <p className="mt-3 text-xs text-slate-400">我的点赞</p>
-            <p className="mt-1 text-xl font-bold text-slate-800">128</p>
+            <p className="mt-1 text-xl font-bold text-slate-800">0</p>
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm">
             <Bookmark size={20} className="text-[#7189a1]" />
             <p className="mt-3 text-xs text-slate-400">我的收藏</p>
-            <p className="mt-1 text-xl font-bold text-slate-800">36</p>
+            <p className="mt-1 text-xl font-bold text-slate-800">0</p>
           </div>
         </section>
 
@@ -143,6 +146,14 @@ export function ProfilePage({
           <IconListRow icon={MapPin} label="地址管理" />
           <IconListRow icon={Headphones} label="官方客服" />
           <IconListRow icon={UserRound} label="关于我们" divider={false} />
+          {user && (
+            <IconListRow
+              icon={LogOut}
+              label="退出登录"
+              onClick={onLogout}
+              divider={false}
+            />
+          )}
         </section>
       </div>
     </main>

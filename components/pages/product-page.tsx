@@ -9,6 +9,7 @@ import {
   Heart,
   MoreHorizontal,
   Minus,
+  PackageOpen,
   Plus,
   Share2,
   ShieldCheck,
@@ -30,18 +31,47 @@ export function ProductPage({
   onAddToCart: (quantity: number) => void;
   onBuy: (total: number) => void;
 }) {
-  const product =
-    catalogProducts.find((item) => item.id === productId) ??
-    catalogProducts[0];
+  const product = catalogProducts.find((item) => item.id === productId);
 
   const [activePhoto, setActivePhoto] = useState(0);
-  const [selectedSpec, setSelectedSpec] = useState("双人套餐");
+  const [selectedSpec, setSelectedSpec] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [saved, setSaved] = useState(false);
   const [added, setAdded] = useState(false);
 
   const photoLabels = ["商品主图", "细节展示", "包装展示"];
-  const specs = ["双人套餐", "四人套餐", "单人尝鲜"];
+  const specs: string[] = [];
+
+  if (!product) {
+    return (
+      <main className="min-h-screen bg-[#f4f6f8] px-4 pb-10">
+        <header className="flex items-center justify-between pb-3 pt-9">
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="返回"
+            className="flex size-9 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm"
+          >
+            <ArrowLeft size={19} />
+          </button>
+          <h1 className="text-[17px] font-bold text-slate-800">商品详情</h1>
+          <span className="size-9" />
+        </header>
+
+        <section className="mt-20 flex flex-col items-center rounded-2xl bg-white px-6 py-12 text-center shadow-sm">
+          <span className="flex size-16 items-center justify-center rounded-full bg-[#edf1f3] text-[#8195a7]">
+            <PackageOpen size={31} strokeWidth={1.4} />
+          </span>
+          <h2 className="mt-4 text-base font-semibold text-slate-700">
+            商品不存在
+          </h2>
+          <p className="mt-2 text-xs text-slate-400">
+            暂时没有可查看的商品
+          </p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f6f8] pb-24">
@@ -138,26 +168,32 @@ export function ProductPage({
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-800">规格选择</h2>
             <span className="text-xs text-slate-400">
-              已选：{selectedSpec}
+              已选：{selectedSpec || "未选择"}
             </span>
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {specs.map((spec) => (
-              <button
-                type="button"
-                key={spec}
-                onClick={() => setSelectedSpec(spec)}
-                className={`rounded-lg border px-3 py-2 text-xs transition ${
-                  selectedSpec === spec
-                    ? "border-[#7189a1] bg-[#edf2f5] font-medium text-[#627c95]"
-                    : "border-slate-200 text-slate-500"
-                }`}
-              >
-                {spec}
-              </button>
-            ))}
-          </div>
+          {specs.length === 0 ? (
+            <p className="mt-3 rounded-xl bg-[#f7f9fa] px-3 py-3 text-xs text-slate-400">
+              暂无可选规格
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {specs.map((spec) => (
+                <button
+                  type="button"
+                  key={spec}
+                  onClick={() => setSelectedSpec(spec)}
+                  className={`rounded-lg border px-3 py-2 text-xs transition ${
+                    selectedSpec === spec
+                      ? "border-[#7189a1] bg-[#edf2f5] font-medium text-[#627c95]"
+                      : "border-slate-200 text-slate-500"
+                  }`}
+                >
+                  {spec}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-sm text-slate-700">购买数量</span>
@@ -193,23 +229,8 @@ export function ProductPage({
             </span>
           </div>
 
-          <div className="mt-3 flex gap-2">
-            <SkeletonImage className="size-8 rounded-full" compact />
-            <div className="min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-semibold text-slate-700">
-                  可乐不加冰
-                </span>
-                <span className="flex gap-0.5 text-[#c18d4f]">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <Star key={index} size={10} fill="currentColor" />
-                  ))}
-                </span>
-              </div>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
-                分量很足，味道不错，服务也很贴心，下次还会带朋友一起去。
-              </p>
-            </div>
+          <div className="mt-3 rounded-xl bg-[#f7f9fa] px-3 py-4 text-xs text-slate-400">
+            暂无用户评价
           </div>
         </section>
 
@@ -221,7 +242,7 @@ export function ProductPage({
                 {product.store}
               </h2>
               <p className="mt-1 text-[11px] text-slate-400">
-                营业中 · 距离你 {product.distance}
+                店铺信息 · 距离你 {product.distance}
               </p>
             </div>
             <button
@@ -236,7 +257,7 @@ export function ProductPage({
         <section className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800">图文详情</h2>
           <p className="mt-2 text-xs leading-5 text-slate-400">
-            精选当季食材，现场制作，详情内容与活动规则请以商家页面为准。
+            商品图文详情将在数据接入后展示。
           </p>
           <div className="mt-4 space-y-3">
             <SkeletonImage className="h-44 rounded-xl" label="详情长图" />

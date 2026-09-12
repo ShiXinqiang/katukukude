@@ -6,13 +6,12 @@ import {
   Check,
   ChevronRight,
   CreditCard,
+  PackageOpen,
   MapPin,
   MessageCircle,
-  Truck,
   WalletCards,
 } from "lucide-react";
 import { formatMoney } from "../../lib/data";
-import { SkeletonImage } from "../ui";
 
 export function CheckoutPage({
   total,
@@ -24,8 +23,9 @@ export function CheckoutPage({
   const [payment, setPayment] = useState("微信支付");
   const [paid, setPaid] = useState(false);
 
-  const shipping = total >= 99 ? 0 : 6;
-  const discount = total >= 100 ? 10 : 0;
+  const hasItems = total > 0;
+  const shipping = hasItems && total < 99 ? 6 : 0;
+  const discount = hasItems && total >= 100 ? 10 : 0;
   const payable = total + shipping - discount;
 
   const payments = [
@@ -50,38 +50,31 @@ export function CheckoutPage({
       </header>
 
       <section className="space-y-3 px-4">
-        <div className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm"
+        >
           <span className="flex size-10 items-center justify-center rounded-full bg-[#e7eef2] text-[#7189a1]">
             <MapPin size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-800">平安</span>
-              <span className="text-xs text-slate-500">138****8820</span>
-            </div>
-            <p className="mt-1 truncate text-xs text-slate-500">
-              上海市浦东新区世纪大道 100 号卡兔大厦 8 楼
+            <span className="block text-sm font-semibold text-slate-700">
+              暂无收货地址
+            </span>
+            <p className="mt-1 truncate text-xs text-slate-400">
+              请先添加收货地址
             </p>
           </div>
           <ChevronRight size={18} className="text-slate-300" />
-        </div>
+        </button>
 
         <section className="rounded-2xl bg-white p-4 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800">商品清单</h2>
-          <div className="mt-4 flex gap-3">
-            <SkeletonImage className="size-[68px] shrink-0 rounded-xl" label="商品" />
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-semibold text-slate-700">
-                本帮老味道火锅双人套餐
-              </h3>
-              <p className="mt-1 text-xs text-slate-400">鸳鸯锅 · 双人套餐</p>
-              <div className="mt-2 flex items-center justify-between">
-                <span className="text-base font-bold text-[#df7066]">
-                  {formatMoney(total)}
-                </span>
-                <span className="text-xs text-slate-400">× 1</span>
-              </div>
-            </div>
+          <div className="mt-4 flex flex-col items-center rounded-xl bg-[#f7f9fa] px-4 py-8 text-center">
+            <PackageOpen size={28} className="text-slate-300" strokeWidth={1.4} />
+            <p className="mt-2 text-xs text-slate-400">
+              {hasItems ? "商品信息待加载" : "暂无待结算商品"}
+            </p>
           </div>
         </section>
 
@@ -135,11 +128,11 @@ export function CheckoutPage({
         </div>
         <button
           type="button"
-          disabled={paid}
+          disabled={paid || !hasItems}
           onClick={() => setPaid(true)}
-          className="h-11 rounded-full bg-[#7189a1] px-7 text-sm font-semibold text-white disabled:opacity-60"
+          className="h-11 rounded-full bg-[#7189a1] px-7 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {paid ? "支付成功" : "立即支付"}
+          {paid ? "支付成功" : hasItems ? "立即支付" : "暂无订单"}
         </button>
       </div>
     </main>

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronRight, Store, Upload, X } from "lucide-react";
+import { ChevronRight, Upload, X } from "lucide-react";
 import { SkeletonImage } from "../ui";
 
 export function PublishPage({ onBack }: { onBack: () => void }) {
-  const [uploaded, setUploaded] = useState(["photo-1", "photo-2"]);
+  const [uploaded, setUploaded] = useState<string[]>([]);
   const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("20");
+  const [stock, setStock] = useState("");
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f6f8] pb-28">
@@ -115,7 +115,7 @@ export function PublishPage({ onBack }: { onBack: () => void }) {
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <button type="button" className="flex w-full items-center border-b border-slate-100 px-4 py-4 text-left">
             <span className="w-20 text-sm text-slate-600">运费</span>
-            <span className="flex-1 text-sm text-slate-500">包邮</span>
+            <span className="flex-1 text-sm text-slate-400">请选择运费</span>
             <ChevronRight size={17} className="text-slate-300" />
           </button>
 

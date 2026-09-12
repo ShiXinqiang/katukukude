@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { MainTab, View } from "../lib/data";
+import { useEffect, useState } from "react";
+import type { AuthUser, MainTab, View } from "../lib/data";
 import { BottomNav } from "../components/navigation";
 import { CartPage } from "../components/pages/cart-page";
 import { CheckoutPage } from "../components/pages/checkout-page";
@@ -18,11 +18,34 @@ import { SearchResultsPage } from "../components/pages/search-page";
 export default function Page() {
   const [view, setView] = useState<View>("home");
   const [previousView, setPreviousView] = useState<View>("home");
-  const [selectedProductId, setSelectedProductId] = useState("hotpot");
-  const [searchKeyword, setSearchKeyword] = useState("火锅");
-  const [cartCount, setCartCount] = useState(2);
-  const [checkoutTotal, setCheckoutTotal] = useState(88);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const cartCount = 0;
+  const [checkoutTotal, setCheckoutTotal] = useState(0);
+  const [user, setUser] = useState<AuthUser | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/auth/me", {
+      cache: "no-store",
+      credentials: "include",
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return (await response.json()) as { user?: AuthUser | null };
+      })
+      .then((result) => {
+        if (active) setUser(result?.user ?? null);
+      })
+      .catch(() => {
+        if (active) setUser(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const navigate = (nextView: View) => {
     setPreviousView(view);
@@ -49,9 +72,7 @@ export default function Page() {
     navigate("search");
   };
 
-  const addToCart = (quantity: number) => {
-    setCartCount((count) => count + quantity);
-  };
+  const addToCart = (_quantity: number) => undefined;
 
   const activeNav: MainTab =
     view === "discover" ||
@@ -85,7 +106,18 @@ export default function Page() {
         {view === "messages" && <MessagesPage />}
 
         {view === "profile" && (
-          <ProfilePage onNavigate={navigate} isLoggedIn={isLoggedIn} />
+          <ProfilePage
+            onNavigate={navigate}
+            user={user}
+            onLogout={async () => {
+              await fetch("/api/auth/logout", {
+                method: "POST",
+                credentials: "include",
+              });
+              setUser(null);
+              navigate("home");
+            }}
+          />
         )}
 
         {view === "product" && (
@@ -105,8 +137,8 @@ export default function Page() {
         {view === "login" && (
           <LoginPage
             onBack={goBack}
-            onSuccess={() => {
-              setIsLoggedIn(true);
+            onSuccess={(nextUser) => {
+              setUser(nextUser);
               navigate("profile");
             }}
           />

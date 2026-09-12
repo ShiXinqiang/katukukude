@@ -6,7 +6,9 @@ import {
   ChevronDown,
   ChevronRight,
   MapPin,
+  PackageOpen,
   Search,
+  ShoppingBag,
   ShoppingCart,
   Star,
   Store,
@@ -50,7 +52,7 @@ export function HomePage({
             className="flex min-w-0 flex-1 items-center rounded-full bg-white px-3 py-2.5 shadow-sm"
             onSubmit={(event) => {
               event.preventDefault();
-              onSearch(keyword.trim() || "好物");
+              onSearch(keyword.trim());
             }}
           >
             <Search size={17} className="mr-2 shrink-0 text-slate-400" />
@@ -146,11 +148,15 @@ export function HomePage({
           />
         </div>
 
-        <div className="scrollbar-hidden flex gap-3 overflow-x-auto px-4 pb-1">
-          {(["hotpot", "coffee", "brunch"] as const).map((id) => {
-            const product = catalogProducts.find((item) => item.id === id)!;
-
-            return (
+        {catalogProducts.length === 0 ? (
+          <EmptySection
+            icon={PackageOpen}
+            title="暂无热门推荐"
+            description="商家和商品上架后会显示在这里"
+          />
+        ) : (
+          <div className="scrollbar-hidden flex gap-3 overflow-x-auto px-4 pb-1">
+            {catalogProducts.map((product) => (
               <article
                 key={product.id}
                 className="min-w-[236px] snap-start overflow-hidden rounded-2xl bg-white shadow-sm"
@@ -185,16 +191,23 @@ export function HomePage({
                   </div>
                 </button>
               </article>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="mt-7 px-4">
         <SectionHeader title="猜你喜欢" onViewAll={() => onSearch("好物")} />
 
-        <div className="space-y-3">
-          {catalogProducts.slice(2).map((product) => (
+        {catalogProducts.length === 0 ? (
+          <EmptySection
+            icon={ShoppingBag}
+            title="暂无商品"
+            description="有新的商品后会显示在这里"
+          />
+        ) : (
+          <div className="space-y-3">
+            {catalogProducts.map((product) => (
             <article
               key={product.id}
               className="flex gap-3 rounded-2xl bg-white p-2.5 shadow-sm"
@@ -246,9 +259,30 @@ export function HomePage({
                 </div>
               </div>
             </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
+  );
+}
+
+function EmptySection({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: typeof PackageOpen;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="mx-4 flex flex-col items-center rounded-2xl bg-white px-5 py-8 text-center shadow-sm">
+      <span className="flex size-12 items-center justify-center rounded-full bg-[#edf1f3] text-[#8195a7]">
+        <Icon size={24} strokeWidth={1.5} />
+      </span>
+      <p className="mt-3 text-sm font-semibold text-slate-700">{title}</p>
+      <p className="mt-1 text-[11px] text-slate-400">{description}</p>
+    </div>
   );
 }
