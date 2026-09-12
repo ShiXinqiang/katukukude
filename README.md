@@ -1,11 +1,23 @@
 # 卡兔服务导航
 
-基于 Next.js、React、Tailwind CSS、Lucide React 和 Railway PostgreSQL 的移动端 H5。
+基于 Next.js、React、Tailwind CSS、Lucide React 和 Supabase PostgreSQL 的移动端 H5。
 
-数据库连接由 `DATABASE_URL` 提供，`/api/health` 可用于检查 PostgreSQL 是否连通。
-账号密码注册、登录、会话查询和退出登录使用 PostgreSQL 中的 `users`、`sessions` 表；首次调用认证接口时会自动创建表结构。密码使用加盐 scrypt 哈希保存，浏览器只保存 HttpOnly 会话 Cookie。
+数据库连接由 `DATABASE_URL` 提供，`DB_SCHEMA` 控制业务 schema（生产环境使用独立的 `katu`），`/api/health` 可用于检查 Supabase PostgreSQL 是否连通。
+账号密码注册、登录、会话查询和退出登录使用 PostgreSQL 中的 `katu.users`、`katu.sessions` 表；首次调用认证接口时会自动创建表结构。密码使用加盐 scrypt 哈希保存，浏览器只保存 HttpOnly 会话 Cookie。
 
 当前商品、内容、消息、购物车、订单和收货地址均不预置演示数据，页面会展示对应空状态，后续可接入业务接口。
+
+## Supabase 生产配置
+
+Railway `web` 服务需要配置以下变量：
+
+```text
+DATABASE_URL=<Supabase Transaction Pooler 连接串，端口 6543>
+DB_SCHEMA=katu
+NODE_ENV=production
+```
+
+连接串从 Supabase 项目的 Connect 面板复制，密码只写入 Railway 环境变量，不要提交到代码仓库。应用会通过 `search_path` 使用 `katu` schema，不会改写目标项目已有的 `public` 表。
 
 ## 管理员后台
 

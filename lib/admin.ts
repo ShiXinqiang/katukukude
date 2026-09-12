@@ -51,6 +51,8 @@ export async function ensureAdminSchema(): Promise<Pool> {
 
     CREATE INDEX IF NOT EXISTS broadcasts_created_at_idx
       ON broadcasts(created_at DESC);
+    CREATE INDEX IF NOT EXISTS broadcasts_created_by_idx
+      ON broadcasts(created_by);
   `);
 
   return database;

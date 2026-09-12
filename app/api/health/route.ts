@@ -23,7 +23,8 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      database: "postgres",
+      database: "supabase-postgres",
+      schema: process.env.DB_SCHEMA?.trim() || "public",
       now: result.rows[0]?.now ?? null,
     });
   } catch (error) {
@@ -32,7 +33,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        database: "postgres",
+        database: "supabase-postgres",
         message: "PostgreSQL connection failed",
       },
       { status: 503 },
