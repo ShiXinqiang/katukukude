@@ -3,6 +3,12 @@ import { getDatabase } from "../../../lib/db";
 
 export const dynamic = "force-dynamic";
 
+function databaseLabel() {
+  return process.env.DB_SCHEMA?.trim() === "katu"
+    ? "supabase-postgres"
+    : "postgres";
+}
+
 export async function GET() {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
@@ -23,7 +29,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      database: "supabase-postgres",
+      database: databaseLabel(),
       schema: process.env.DB_SCHEMA?.trim() || "public",
       now: result.rows[0]?.now ?? null,
     });
@@ -33,7 +39,7 @@ export async function GET() {
     return NextResponse.json(
       {
         ok: false,
-        database: "supabase-postgres",
+        database: databaseLabel(),
         message: "PostgreSQL connection failed",
       },
       { status: 503 },
