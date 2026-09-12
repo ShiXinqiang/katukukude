@@ -94,27 +94,36 @@ export type AdminBroadcastRecord = {
 
 export type MerchantApplicationStatus = "pending" | "approved" | "rejected";
 
+export type MerchantDocumentRecord = {
+  id: string;
+  kind: "store_photo" | "store_video";
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+};
+
 export type MerchantApplicationRecord = {
   id: string;
   userId: string;
   username?: string;
   displayName?: string;
-  storeNameCn: string;
+  storeNameCn: string | null;
   storeNameMm: string | null;
-  legalName: string;
-  contactName: string;
   phone: string;
   email: string | null;
+  tgAccount: string | null;
+  wechatAccount: string | null;
   businessType: string;
-  licenseNo: string | null;
-  identityNo: string;
   stateRegion: string;
   city: string;
   township: string;
   address: string;
   mapLink: string | null;
+  locationLat: string | null;
+  locationLng: string | null;
   description: string;
   documentIds: string[];
+  documents?: MerchantDocumentRecord[];
   documentCount?: number;
   status: MerchantApplicationStatus;
   reviewNote: string | null;

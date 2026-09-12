@@ -15,20 +15,24 @@ export async function ensureMerchantSchema(): Promise<Pool> {
     CREATE TABLE IF NOT EXISTS merchant_applications (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-      store_name_cn VARCHAR(120) NOT NULL,
+      store_name_cn VARCHAR(120),
       store_name_mm VARCHAR(160),
-      legal_name VARCHAR(120) NOT NULL,
-      contact_name VARCHAR(120) NOT NULL,
+      legal_name VARCHAR(120),
+      contact_name VARCHAR(120),
       phone VARCHAR(32) NOT NULL,
       email VARCHAR(160),
+      tg_account VARCHAR(100),
+      wechat_account VARCHAR(100),
       business_type VARCHAR(64) NOT NULL,
       license_no VARCHAR(100),
-      identity_no VARCHAR(100) NOT NULL,
+      identity_no VARCHAR(100),
       state_region VARCHAR(100) NOT NULL,
       city VARCHAR(100) NOT NULL,
       township VARCHAR(100) NOT NULL,
       address TEXT NOT NULL,
       map_link TEXT,
+      location_lat NUMERIC(10,7),
+      location_lng NUMERIC(10,7),
       description TEXT NOT NULL,
       document_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
       status VARCHAR(16) NOT NULL DEFAULT 'pending',
@@ -39,6 +43,16 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    ALTER TABLE merchant_applications
+      ALTER COLUMN store_name_cn DROP NOT NULL,
+      ALTER COLUMN legal_name DROP NOT NULL,
+      ALTER COLUMN contact_name DROP NOT NULL,
+      ALTER COLUMN identity_no DROP NOT NULL,
+      ADD COLUMN IF NOT EXISTS tg_account VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS wechat_account VARCHAR(100),
+      ADD COLUMN IF NOT EXISTS location_lat NUMERIC(10,7),
+      ADD COLUMN IF NOT EXISTS location_lng NUMERIC(10,7);
+
     CREATE TABLE IF NOT EXISTS merchant_application_documents (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -46,7 +60,7 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       kind VARCHAR(32) NOT NULL,
       file_name VARCHAR(255) NOT NULL,
       mime_type VARCHAR(100) NOT NULL,
-      file_size INTEGER NOT NULL,
+      file_size INTEGER NOT NULL CHECK (file_size > 0 AND file_size <= 31457280),
       content BYTEA NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );

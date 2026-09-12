@@ -136,7 +136,7 @@ export function ProfilePage({
             </span>
             <span>
               <span className="block text-sm font-bold text-slate-700">
-                {user?.role === "merchant" ? "商家版" : "商家入驻申请"}
+                {user?.role === "merchant" ? "商家后台" : "商家入驻申请"}
               </span>
               <span className="mt-1 block text-[11px] text-slate-500">
                 {user?.role === "merchant"

@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const admin = await getCurrentAdmin();
-  if (!admin) return NextResponse.json({ message: "需要管理员权限" }, { status: 401 });
+  if (!admin) return NextResponse.json({ message: "需要超级管理员权限" }, { status: 401 });
 
   const body = (await request.json()) as { status?: unknown; reviewNote?: unknown };
   const status = body.status === "approved" || body.status === "rejected" ? body.status : null;
@@ -22,10 +22,23 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     await client.query("BEGIN");
     const result = await client.query<{
-      id: string; user_id: string; status: string; store_name_cn: string;
-      store_name_mm: string | null; phone: string; business_type: string;
-      state_region: string; city: string; township: string; address: string; description: string;
-    }>("SELECT * FROM merchant_applications WHERE id = $1 FOR UPDATE", [params.id]);
+      id: string;
+      user_id: string;
+      status: string;
+      store_name_cn: string | null;
+      store_name_mm: string | null;
+      phone: string;
+      business_type: string;
+      state_region: string;
+      city: string;
+      township: string;
+      address: string;
+      description: string;
+      document_ids: string[];
+    }>(
+      "SELECT * FROM merchant_applications WHERE id = $1 FOR UPDATE",
+      [params.id],
+    );
     const application = result.rows[0];
     if (!application) {
       await client.query("ROLLBACK");
@@ -34,6 +47,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (application.status !== "pending") {
       await client.query("ROLLBACK");
       return NextResponse.json({ message: "该申请已经审核过" }, { status: 409 });
+    }
+
+    const proofs = await client.query<{ kind: string }>(
+      "SELECT kind FROM merchant_application_documents WHERE user_id = $1 AND id = ANY($2::text[])",
+      [application.user_id, application.document_ids],
+    );
+    const photoCount = proofs.rows.filter((item) => item.kind === "store_photo").length;
+    const videoCount = proofs.rows.filter((item) => item.kind === "store_video").length;
+    if (status === "approved" && (photoCount < 2 || videoCount < 1)) {
+      await client.query("ROLLBACK");
+      return NextResponse.json({ message: "证明资料不完整，不能通过审核" }, { status: 400 });
     }
 
     await client.query(
@@ -45,6 +69,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     );
 
     if (status === "approved") {
+      const storeName = application.store_name_cn || application.store_name_mm;
+      if (!storeName) throw new Error("STORE_NAME_REQUIRED");
       await client.query(
         `INSERT INTO merchants (
             id, user_id, application_id, store_name_cn, store_name_mm, phone,
@@ -63,10 +89,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
             description = EXCLUDED.description,
             status = 'active', approved_at = NOW(), updated_at = NOW()`,
         [
-          randomUUID(), application.user_id, application.id,
-          application.store_name_cn, application.store_name_mm, application.phone,
-          application.business_type, application.state_region, application.city,
-          application.township, application.address, application.description,
+          randomUUID(), application.user_id, application.id, storeName,
+          application.store_name_mm, application.phone,
+          application.business_type, application.state_region,
+          application.city, application.township, application.address,
+          application.description,
         ],
       );
       await client.query(
@@ -82,7 +109,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         randomUUID(), application.user_id,
         status === "approved" ? "商家入驻审核通过" : "商家入驻申请需修改",
         status === "approved"
-          ? "你的商家申请已通过，现在可以进入商家版管理店铺、商品和订单。"
+          ? "你的商家申请已通过，现在可以进入独立商家后台管理商品。"
           : `你的商家申请未通过：${reviewNote}`,
       ],
     );

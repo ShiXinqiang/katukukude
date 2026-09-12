@@ -16,6 +16,7 @@ import {
   FileText,
   Power,
   Store,
+  PackageSearch,
   Trash2,
   UserX,
   RefreshCw,
@@ -37,7 +38,34 @@ import type {
   UserStatus,
 } from "../../lib/data";
 
-type AdminSection = "overview" | "users" | "merchantApplications" | "orders" | "broadcasts";
+type AdminSection = "overview" | "users" | "merchantApplications" | "merchants" | "products" | "orders" | "broadcasts";
+
+type AdminMerchant = {
+  id: string; userId: string; storeNameCn: string; storeNameMm: string | null;
+  phone: string; businessType: string; stateRegion: string; city: string;
+  township: string; address: string; description: string;
+  status: "active" | "suspended" | "closed"; approvedAt: string;
+  username: string; displayName: string; productCount: number; orderCount: number;
+};
+
+type AdminProduct = {
+  id: string; title: string; description: string; category: string;
+  price: string; stock: number; status: "draft" | "active" | "archived";
+  createdAt: string; updatedAt: string; merchantId: string; storeNameCn: string;
+};
+
+type ConfirmDialogState = {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  danger?: boolean;
+  action: () => Promise<void>;
+};
+
+type ReviewDialogState = {
+  application: MerchantApplicationRecord;
+  decision: "approved" | "rejected";
+} | null;
 
 const navItems: Array<{
   key: AdminSection;
@@ -47,6 +75,8 @@ const navItems: Array<{
   { key: "overview", label: "概览", icon: LayoutDashboard },
   { key: "users", label: "用户管理", icon: Users },
   { key: "merchantApplications", label: "商家审核", icon: Store },
+  { key: "merchants", label: "商家管理", icon: ShieldCheck },
+  { key: "products", label: "全站商品", icon: PackageSearch },
   { key: "orders", label: "订单中心", icon: ClipboardList },
   { key: "broadcasts", label: "全员广播", icon: Megaphone },
 ];
@@ -123,6 +153,10 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
   const [userTotal, setUserTotal] = useState(0);
   const [applications, setApplications] = useState<MerchantApplicationRecord[]>([]);
   const [applicationStatus, setApplicationStatus] = useState("pending");
+  const [merchants, setMerchants] = useState<AdminMerchant[]>([]);
+  const [adminProducts, setAdminProducts] = useState<AdminProduct[]>([]);
+  const [reviewDialog, setReviewDialog] = useState<ReviewDialogState>(null);
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
   const [orders, setOrders] = useState<AdminOrderRecord[]>([]);
   const [orderSearch, setOrderSearch] = useState("");
   const [orderPage, setOrderPage] = useState(1);
@@ -193,6 +227,24 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
     }
   };
 
+  const loadMerchants = async () => {
+    setLoading("merchants"); setError("");
+    try {
+      const result = await requestJson<{ merchants: AdminMerchant[] }>("/api/admin/merchants");
+      setMerchants(result.merchants);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
+  const loadAdminProducts = async () => {
+    setLoading("products"); setError("");
+    try {
+      const result = await requestJson<{ products: AdminProduct[] }>("/api/admin/products");
+      setAdminProducts(result.products);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
   const loadOrders = async (page = 1, search = orderSearch) => {
     setLoading("orders");
     setError("");
@@ -242,6 +294,8 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
   useEffect(() => {
     if (section === "users") void loadUsers(1);
     if (section === "merchantApplications") void loadApplications();
+    if (section === "merchants") void loadMerchants();
+    if (section === "products") void loadAdminProducts();
     if (section === "orders") void loadOrders(1);
     if (section === "broadcasts") void loadBroadcasts();
   }, [section]);
@@ -286,7 +340,6 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
   };
 
   const deleteUser = async (user: AdminUserRecord) => {
-    if (!window.confirm(`删除账号“${user.username}”及其关联资料？此操作不可撤销。`)) return;
     setLoading(`user-${user.id}`);
     setError("");
     try {
@@ -303,27 +356,65 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
   const reviewApplication = async (
     application: MerchantApplicationRecord,
     status: "approved" | "rejected",
+    reviewNote: string,
   ) => {
-    const reviewNote = status === "rejected"
-      ? window.prompt("请输入拒绝原因（用户会在消息中心看到）")?.trim()
-      : window.prompt("审核备注（可选）")?.trim() || "";
-    if (status === "rejected" && !reviewNote) return;
-    if (status === "approved" && !window.confirm(`确认通过“${application.storeNameCn}”的入驻申请？`)) return;
-    setLoading(`application-${application.id}`);
-    setError("");
+    setLoading(`application-${application.id}`); setError("");
     try {
       await requestJson(`/api/admin/merchant-applications/${application.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, reviewNote }),
       });
-      setNotice(status === "approved" ? "审核通过，商家权限已自动开通" : "已拒绝申请并通知用户");
-      await Promise.all([loadApplications(applicationStatus), loadOverview(), loadUsers(1)]);
-    } catch (requestError) {
-      setError(getErrorMessage(requestError));
-    } finally {
-      setLoading(null);
-    }
+      setReviewDialog(null);
+      setNotice(status === "approved" ? "审核通过，商家后台权限已自动开通" : "已拒绝申请并通知用户");
+      await Promise.all([loadApplications(applicationStatus), loadOverview(), loadUsers(1), loadMerchants()]);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
+  const changeMerchantStatus = async (merchant: AdminMerchant, status: AdminMerchant["status"]) => {
+    setLoading(`merchant-${merchant.id}`); setError("");
+    try {
+      await requestJson(`/api/admin/merchants/${merchant.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      setNotice(status === "active" ? "商家已恢复" : status === "suspended" ? "商家后台已暂停" : "商家已关闭");
+      await Promise.all([loadMerchants(), loadOverview(), loadUsers(1)]);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
+  const deleteMerchant = async (merchant: AdminMerchant) => {
+    setLoading(`merchant-${merchant.id}`); setError("");
+    try {
+      await requestJson(`/api/admin/merchants/${merchant.id}`, { method: "DELETE" });
+      setNotice("商家及其商品已删除，用户账号仍保留");
+      await Promise.all([loadMerchants(), loadAdminProducts(), loadOverview(), loadUsers(1)]);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
+  const changeProductStatus = async (product: AdminProduct, status: AdminProduct["status"]) => {
+    setLoading(`product-${product.id}`); setError("");
+    try {
+      await requestJson(`/api/admin/products/${product.id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      setNotice("商品状态已更新");
+      await loadAdminProducts();
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
+  };
+
+  const deleteAdminProduct = async (product: AdminProduct) => {
+    setLoading(`product-${product.id}`); setError("");
+    try {
+      await requestJson(`/api/admin/products/${product.id}`, { method: "DELETE" });
+      setNotice("商品已删除");
+      await Promise.all([loadAdminProducts(), loadOverview()]);
+    } catch (requestError) { setError(getErrorMessage(requestError)); }
+    finally { setLoading(null); }
   };
 
   const confirmPayment = async (event: FormEvent<HTMLFormElement>) => {
@@ -422,7 +513,7 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
           </nav>
 
           <div className="mt-auto rounded-2xl bg-[#f4f7f8] p-4">
-            <p className="text-xs font-semibold text-slate-700">当前管理员</p>
+            <p className="text-xs font-semibold text-slate-700">当前超级管理员</p>
             <p className="mt-2 truncate text-sm text-slate-600">{admin.displayName}</p>
             <p className="mt-1 truncate text-[11px] text-slate-400">{admin.username}</p>
             <button
@@ -531,7 +622,15 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
                 onUserUpdate={(target, changes, success) =>
                   void updateUser(target, changes, success)
                 }
-                onDelete={(target) => void deleteUser(target)}
+                onDelete={(target) =>
+                  setConfirmDialog({
+                    title: "永久删除用户",
+                    description: `将删除账号“${target.username}”及其申请、店铺和商品资料。此操作不可撤销。`,
+                    confirmLabel: "确认删除",
+                    danger: true,
+                    action: () => deleteUser(target),
+                  })
+                }
               />
             )}
             {section === "merchantApplications" && (
@@ -542,7 +641,49 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
                 actionLoading={loading}
                 onStatus={(nextStatus) => void loadApplications(nextStatus)}
                 onReview={(application, status) =>
-                  void reviewApplication(application, status)
+                  setReviewDialog({ application, decision: status })
+                }
+              />
+            )}
+            {section === "merchants" && (
+              <AdminMerchantsPanel
+                merchants={merchants}
+                loading={loading === "merchants"}
+                actionLoading={loading}
+                onStatus={(merchant, status) =>
+                  setConfirmDialog({
+                    title: status === "active" ? "恢复商家" : status === "suspended" ? "暂停商家后台" : "关闭商家",
+                    description: `确定对“${merchant.storeNameCn}”执行此操作吗？商家会被强制退出。`,
+                    confirmLabel: "确认操作",
+                    danger: status !== "active",
+                    action: () => changeMerchantStatus(merchant, status),
+                  })
+                }
+                onDelete={(merchant) =>
+                  setConfirmDialog({
+                    title: "永久删除商家",
+                    description: `将删除“${merchant.storeNameCn}”及其全部商品，用户账号仍会保留。此操作不可撤销。`,
+                    confirmLabel: "确认删除",
+                    danger: true,
+                    action: () => deleteMerchant(merchant),
+                  })
+                }
+              />
+            )}
+            {section === "products" && (
+              <AdminProductsPanel
+                products={adminProducts}
+                loading={loading === "products"}
+                actionLoading={loading}
+                onStatus={(product, status) => void changeProductStatus(product, status)}
+                onDelete={(product) =>
+                  setConfirmDialog({
+                    title: "删除全站商品",
+                    description: `确定永久删除“${product.title}”吗？`,
+                    confirmLabel: "确认删除",
+                    danger: true,
+                    action: () => deleteAdminProduct(product),
+                  })
                 }
               />
             )}
@@ -588,6 +729,24 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
           </div>
         </div>
       </div>
+      {reviewDialog && (
+        <ReviewApplicationModal
+          dialog={reviewDialog}
+          loading={loading === `application-${reviewDialog.application.id}`}
+          onClose={() => setReviewDialog(null)}
+          onSubmit={(note) => void reviewApplication(reviewDialog.application, reviewDialog.decision, note)}
+        />
+      )}
+      {confirmDialog && (
+        <ConfirmModal
+          dialog={confirmDialog}
+          onClose={() => setConfirmDialog(null)}
+          onConfirm={async () => {
+            await confirmDialog.action();
+            setConfirmDialog(null);
+          }}
+        />
+      )}
     </main>
   );
 }
@@ -616,7 +775,7 @@ function OverviewPanel({
     <section>
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500">欢迎回来，管理员</p>
+          <p className="text-sm text-slate-500">欢迎回来，超级管理员</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
             业务概览
           </h2>
@@ -690,7 +849,7 @@ function OverviewPanel({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-white/65">数据安全</p>
-              <h3 className="mt-2 text-lg font-bold">管理员权限已启用</h3>
+              <h3 className="mt-2 text-lg font-bold">超级管理员权限已启用</h3>
             </div>
             <CircleDollarSign size={25} className="text-white/80" />
           </div>
@@ -796,15 +955,13 @@ function UsersPanel({
                     disabled={user.id === adminId || loading}
                     onChange={(event) => {
                       const role = event.target.value as UserRole;
-                      if (window.confirm(`确认将 ${user.username} 的角色改为 ${role === "admin" ? "管理员" : role === "merchant" ? "商家" : "普通用户"}？`)) {
-                        onUserUpdate(user, { role }, "用户角色已更新");
-                      }
+                      onUserUpdate(user, { role }, "用户角色已更新");
                     }}
                     className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-500 disabled:opacity-40"
                   >
                     <option value="user">普通用户</option>
                     <option value="merchant">商家</option>
-                    <option value="admin">管理员</option>
+                    <option value="admin">超级管理员</option>
                   </select>
                   <button
                     type="button"
@@ -1244,59 +1401,96 @@ function MerchantApplicationsPanel({
   const labels: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝", all: "全部" };
   return (
     <section>
-      <PanelIntro title="商家入驻审核" description="核验经营主体、缅甸联系方式、地址与证明材料，通过后自动开通商家版。" icon={Store} />
+      <PanelIntro title="商家入驻审核" description="核验店铺名称、经营类型、联系方式、详细地址、两张店铺照片和现场视频。" icon={Store} />
       <div className="mt-6 flex gap-2 overflow-x-auto">
-        {Object.entries(labels).map(([key, label]) => (
-          <button type="button" key={key} onClick={() => onStatus(key)} className={`shrink-0 rounded-full px-4 py-2 text-xs ${status === key ? "bg-[#7189a1] text-white" : "bg-white text-slate-500"}`}>{label}</button>
-        ))}
+        {Object.entries(labels).map(([key, label]) => <button type="button" key={key} onClick={() => onStatus(key)} className={`shrink-0 rounded-full px-4 py-2 text-xs ${status === key ? "bg-[#7189a1] text-white" : "bg-white text-slate-500"}`}>{label}</button>)}
       </div>
       <div className="mt-4 space-y-4">
-        {loading ? <TableSkeleton rows={5} /> : applications.length === 0 ? (
-          <div className="rounded-2xl bg-white shadow-sm"><EmptyPanel title="暂无商家申请" description="用户提交的真实入驻资料会显示在这里。" /></div>
-        ) : applications.map((application) => (
+        {loading ? <TableSkeleton rows={5} /> : applications.length === 0 ? <div className="rounded-2xl bg-white shadow-sm"><EmptyPanel title="暂无商家申请" description="用户提交的入驻资料会显示在这里。" /></div> : applications.map((application) => (
           <article key={application.id} className="rounded-2xl bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-bold">{application.storeNameCn}</h3>
-                  {application.storeNameMm && <span className="text-xs text-slate-400">{application.storeNameMm}</span>}
+                  <h3 className="text-base font-bold">{application.storeNameCn || application.storeNameMm}</h3>
+                  {application.storeNameCn && application.storeNameMm && <span className="text-xs text-slate-400">{application.storeNameMm}</span>}
                   <span className={`rounded-full px-2.5 py-1 text-[10px] ${application.status === "approved" ? "bg-[#edf4ef] text-[#5f816e]" : application.status === "rejected" ? "bg-[#fff0ed] text-[#b96158]" : "bg-[#fff2e8] text-[#ad795d]"}`}>{labels[application.status]}</span>
                 </div>
                 <p className="mt-2 text-xs text-slate-400">申请人：{application.displayName}（{application.username}） · {formatDate(application.submittedAt)}</p>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  <DetailCell label="法人 / 经营者" value={application.legalName} />
-                  <DetailCell label="联系人" value={`${application.contactName} · ${application.phone}`} />
+                  <DetailCell label="联系电话" value={application.phone} />
                   <DetailCell label="经营类型" value={application.businessType} />
-                  <DetailCell label="身份证 / 护照" value={application.identityNo} />
-                  <DetailCell label="营业执照" value={application.licenseNo || "未提供"} />
-                  <DetailCell label="地区" value={`${application.stateRegion} · ${application.city} · ${application.township}`} />
+                  <DetailCell label="邮箱" value={application.email || "未填写"} />
+                  <DetailCell label="Telegram" value={application.tgAccount || "未填写"} />
+                  <DetailCell label="微信" value={application.wechatAccount || "未填写"} />
+                  <DetailCell label="省 / 市 / 镇区" value={`${application.stateRegion} · ${application.city} · ${application.township}`} />
                 </div>
                 <div className="mt-3 rounded-xl bg-[#f7f9fa] p-4 text-xs">
-                  <p className="font-semibold text-slate-600">经营地址</p>
+                  <p className="font-semibold text-slate-600">详细营业地址</p>
                   <p className="mt-2 leading-5 text-slate-400">{application.address}</p>
                   <p className="mt-3 font-semibold text-slate-600">店铺介绍</p>
                   <p className="mt-2 leading-5 text-slate-400">{application.description}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {application.documentIds.map((id, index) => (
-                    <a key={id} href={`/api/merchant/application/documents/${id}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#edf2f5] px-3 py-2 text-xs text-[#667f98]"><FileText size={14} />证明文件 {index + 1}</a>
-                  ))}
-                  {application.mapLink && <a href={application.mapLink} target="_blank" rel="noreferrer" className="rounded-full bg-[#edf4ef] px-3 py-2 text-xs text-[#5f816e]">查看地图位置</a>}
+                  {application.documentIds.map((id, index) => <a key={id} href={`/api/merchant/application/documents/${id}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#edf2f5] px-3 py-2 text-xs text-[#667f98]"><FileText size={14} />{index < 2 ? `店铺照片 ${index + 1}` : "现场视频"}</a>)}
+                  {application.mapLink && <a href={application.mapLink} target="_blank" rel="noreferrer" className="rounded-full bg-[#edf4ef] px-3 py-2 text-xs text-[#5f816e]">打开地图 / 导航</a>}
                 </div>
                 {application.reviewNote && <p className="mt-3 rounded-xl bg-[#fff7f3] p-3 text-xs text-[#a96f58]">审核备注：{application.reviewNote}</p>}
               </div>
-              {application.status === "pending" && (
-                <div className="flex shrink-0 gap-2 lg:flex-col">
-                  <button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "approved")} className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#7189a1] px-5 text-xs font-semibold text-white disabled:opacity-50"><CheckCircle2 size={15} />通过</button>
-                  <button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "rejected")} className="h-10 rounded-full border border-[#edcec7] px-5 text-xs text-[#b96158] disabled:opacity-50">拒绝</button>
-                </div>
-              )}
+              {application.status === "pending" && <div className="flex shrink-0 gap-2 lg:flex-col"><button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "approved")} className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#7189a1] px-5 text-xs font-semibold text-white disabled:opacity-50"><CheckCircle2 size={15} />通过</button><button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "rejected")} className="h-10 rounded-full border border-[#edcec7] px-5 text-xs text-[#b96158] disabled:opacity-50">拒绝</button></div>}
             </div>
           </article>
         ))}
       </div>
     </section>
   );
+}
+
+function AdminMerchantsPanel({
+  merchants, loading, actionLoading, onStatus, onDelete,
+}: {
+  merchants: AdminMerchant[];
+  loading: boolean;
+  actionLoading: string | null;
+  onStatus: (merchant: AdminMerchant, status: AdminMerchant["status"]) => void;
+  onDelete: (merchant: AdminMerchant) => void;
+}) {
+  return <section><PanelIntro title="全站商家管理" description="超级管理员可暂停、恢复、关闭或删除任意商家。" icon={ShieldCheck} /><div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm">{loading ? <TableSkeleton rows={5} /> : merchants.length === 0 ? <EmptyPanel title="暂无认证商家" description="审核通过的商家会显示在这里。" /> : <div className="divide-y divide-slate-100">{merchants.map((merchant) => <div key={merchant.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#e8eef2] text-[#667f98]"><Store size={21} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{merchant.storeNameCn}</p><span className={`rounded-full px-2 py-0.5 text-[10px] ${merchant.status === "active" ? "bg-[#edf4ef] text-[#5f816e]" : "bg-[#fff0ed] text-[#b96158]"}`}>{merchant.status === "active" ? "营业中" : merchant.status === "suspended" ? "已暂停" : "已关闭"}</span></div><p className="mt-1 text-xs text-slate-400">{merchant.username} · {merchant.phone} · {merchant.city}/{merchant.township}</p><p className="mt-1 text-[11px] text-slate-400">{merchant.productCount} 个商品 · {merchant.orderCount} 笔订单</p></div><div className="flex flex-wrap gap-2">{merchant.status !== "active" && <button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "active")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">恢复</button>}{merchant.status === "active" && <button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "suspended")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">暂停后台</button>}<button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "closed")} className="rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]">关闭</button><button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onDelete(merchant)} className="flex items-center gap-1 rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]"><Trash2 size={12} />删除</button></div></div></div>)}</div>}</div></section>;
+}
+
+function AdminProductsPanel({
+  products, loading, actionLoading, onStatus, onDelete,
+}: {
+  products: AdminProduct[];
+  loading: boolean;
+  actionLoading: string | null;
+  onStatus: (product: AdminProduct, status: AdminProduct["status"]) => void;
+  onDelete: (product: AdminProduct) => void;
+}) {
+  return <section><PanelIntro title="全站商品管理" description="超级管理员可以审核、强制下架、恢复或删除所有商家商品。" icon={PackageSearch} /><div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm">{loading ? <TableSkeleton rows={6} /> : products.length === 0 ? <EmptyPanel title="暂无商品" description="商家发布的商品会显示在这里。" /> : <div className="divide-y divide-slate-100">{products.map((product) => <div key={product.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#edf2f5] text-[#667f98]"><PackageSearch size={20} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{product.title}</p><p className="mt-1 text-xs text-slate-400">{product.storeNameCn} · {product.category} · 库存 {product.stock}</p><p className="mt-1 text-sm font-bold text-[#b47763]">Ks {Number(product.price).toLocaleString("zh-CN")}</p></div><span className="text-xs text-slate-400">{product.status === "active" ? "销售中" : product.status === "draft" ? "草稿" : "已下架"}</span><div className="flex gap-2">{product.status !== "active" && <button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onStatus(product, "active")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">恢复上架</button>}{product.status === "active" && <button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onStatus(product, "archived")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">强制下架</button>}<button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onDelete(product)} className="flex items-center gap-1 rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]"><Trash2 size={12} />删除</button></div></div>)}</div>}</div></section>;
+}
+
+function ReviewApplicationModal({
+  dialog, loading, onClose, onSubmit,
+}: {
+  dialog: NonNullable<ReviewDialogState>;
+  loading: boolean;
+  onClose: () => void;
+  onSubmit: (note: string) => void;
+}) {
+  const [note, setNote] = useState("");
+  const rejecting = dialog.decision === "rejected";
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3 sm:items-center"><div className="w-full max-w-md rounded-3xl bg-white p-5"><div className="flex items-center justify-between"><h3 className="text-lg font-bold">{rejecting ? "拒绝商家申请" : "通过商家申请"}</h3><button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-full bg-[#f4f6f8]"><X size={16} /></button></div><p className="mt-2 text-xs leading-5 text-slate-400">{dialog.application.storeNameCn || dialog.application.storeNameMm} · {rejecting ? "拒绝原因会发送给申请人" : "通过后会立即开通独立商家后台"}</p><label className="mt-4 block text-xs text-slate-500">{rejecting ? "拒绝原因 *" : "审核备注（可选）"}<textarea value={note} onChange={(event) => setNote(event.target.value.slice(0, 1000))} rows={4} className="mt-2 w-full resize-none rounded-xl bg-[#f4f6f8] p-3 text-sm outline-none" /></label><button type="button" disabled={loading || (rejecting && !note.trim())} onClick={() => onSubmit(note.trim())} className={`mt-4 h-11 w-full rounded-full text-sm font-semibold text-white disabled:opacity-50 ${rejecting ? "bg-[#bd6b60]" : "bg-[#7189a1]"}`}>{loading ? "处理中…" : rejecting ? "确认拒绝" : "确认通过并开通"}</button></div></div>;
+}
+
+function ConfirmModal({
+  dialog, onClose, onConfirm,
+}: {
+  dialog: ConfirmDialogState;
+  onClose: () => void;
+  onConfirm: () => Promise<void>;
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3 sm:items-center"><div className="w-full max-w-sm rounded-3xl bg-white p-5"><h3 className="text-lg font-bold">{dialog.title}</h3><p className="mt-2 text-xs leading-6 text-slate-500">{dialog.description}</p><div className="mt-5 grid grid-cols-2 gap-2"><button type="button" onClick={onClose} className="h-11 rounded-full bg-[#f1f4f6] text-sm text-slate-500">取消</button><button type="button" disabled={submitting} onClick={async () => { setSubmitting(true); await onConfirm(); setSubmitting(false); }} className={`h-11 rounded-full text-sm font-semibold text-white disabled:opacity-50 ${dialog.danger ? "bg-[#bd6b60]" : "bg-[#7189a1]"}`}>{submitting ? "处理中…" : dialog.confirmLabel}</button></div></div></div>;
 }
 
 function PanelIntro({
