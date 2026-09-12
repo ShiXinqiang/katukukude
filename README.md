@@ -19,6 +19,8 @@ NODE_ENV=production
 
 连接串从 Supabase 项目的 Connect 面板复制，密码只写入 Railway 环境变量，不要提交到代码仓库。应用会通过 `search_path` 使用 `katu` schema，不会改写目标项目已有的 `public` 表。
 
+数据迁移脚本仅用于一次性切换：将现有数据库连接串配置为 `SOURCE_DATABASE_URL`，再将 `DATABASE_URL` 配置为 Supabase 连接串，运行 `npm run db:migrate`。脚本会迁移账号、会话、订单、通知和广播，不会删除目标库已有的 `public` 数据；切换完成后线上应用只读取 Supabase。
+
 ## 管理员后台
 
 访问 `/admin/login` 登录管理员后台。后台包含实时数据概览、用户角色管理、订单查询与分页、订单详情、精确到分的付款确认、付款成功用户通知和全员广播。
