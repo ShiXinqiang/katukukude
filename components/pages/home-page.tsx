@@ -44,7 +44,7 @@ export function HomePage({
             className="flex shrink-0 items-center gap-1 text-xs font-medium text-slate-700"
           >
             <MapPin size={17} className="text-[#7189a1]" />
-            <span>上海市浦东新区</span>
+            <span>缅甸 · 仰光 Yangon</span>
             <ChevronDown size={14} className="text-slate-400" />
           </button>
 

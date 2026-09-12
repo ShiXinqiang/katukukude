@@ -9,6 +9,7 @@ import { DiscoverPage } from "../components/pages/discover-page";
 import { HomePage } from "../components/pages/home-page";
 import { LoginPage } from "../components/pages/login-page";
 import { MessagesPage } from "../components/pages/messages-page";
+import { MerchantApplyPage } from "../components/pages/merchant-apply-page";
 import { ProductPage } from "../components/pages/product-page";
 import { ProfilePage } from "../components/pages/profile-page";
 import { PublishPage } from "../components/pages/publish-page";
@@ -133,6 +134,14 @@ export default function Page() {
         )}
 
         {view === "publish" && <PublishPage onBack={goBack} />}
+
+        {view === "merchantApply" && (
+          <MerchantApplyPage
+            user={user}
+            onBack={goBack}
+            onNavigate={navigate}
+          />
+        )}
 
         {view === "login" && (
           <LoginPage

@@ -40,14 +40,19 @@ export async function POST(request: Request) {
       username: string;
       display_name: string;
       role: string;
+      status: string;
       password_hash: string;
       created_at: Date | string;
     }>(
-      `SELECT id, username, display_name, role, password_hash, created_at
+      `SELECT id, username, display_name, role, status, password_hash, created_at
        FROM users WHERE username = $1 LIMIT 1`,
       [username],
     );
     const user = result.rows[0];
+
+    if (user?.status === "suspended") {
+      return NextResponse.json({ message: "账号已停用，请联系客服" }, { status: 403 });
+    }
 
     if (!user || !(await verifyPassword(password, user.password_hash))) {
       return NextResponse.json(

@@ -23,6 +23,7 @@ export type View =
   | "profile"
   | "product"
   | "publish"
+  | "merchantApply"
   | "login"
   | "cart"
   | "checkout"
@@ -30,13 +31,15 @@ export type View =
 
 export type MainTab = "home" | "discover" | "scan" | "messages" | "profile";
 
-export type UserRole = "user" | "admin";
+export type UserRole = "user" | "merchant" | "admin";
+export type UserStatus = "active" | "suspended";
 
 export type AuthUser = {
   id: string;
   username: string;
   displayName: string;
   role: UserRole;
+  status: UserStatus;
   createdAt: string;
 };
 
@@ -46,6 +49,8 @@ export type AdminOverview = {
   orders: number;
   broadcasts: number;
   notifications: number;
+  merchants: number;
+  pendingApplications: number;
 };
 
 export type AdminUserRecord = {
@@ -53,6 +58,7 @@ export type AdminUserRecord = {
   username: string;
   displayName: string;
   role: UserRole;
+  status: UserStatus;
   createdAt: string;
 };
 
@@ -86,6 +92,74 @@ export type AdminBroadcastRecord = {
   createdAt: string;
 };
 
+export type MerchantApplicationStatus = "pending" | "approved" | "rejected";
+
+export type MerchantApplicationRecord = {
+  id: string;
+  userId: string;
+  username?: string;
+  displayName?: string;
+  storeNameCn: string;
+  storeNameMm: string | null;
+  legalName: string;
+  contactName: string;
+  phone: string;
+  email: string | null;
+  businessType: string;
+  licenseNo: string | null;
+  identityNo: string;
+  stateRegion: string;
+  city: string;
+  township: string;
+  address: string;
+  mapLink: string | null;
+  description: string;
+  documentIds: string[];
+  documentCount?: number;
+  status: MerchantApplicationStatus;
+  reviewNote: string | null;
+  submittedAt: string;
+  updatedAt: string;
+  reviewedAt: string | null;
+};
+
+export type MerchantRecord = {
+  id: string;
+  userId: string;
+  storeNameCn: string;
+  storeNameMm: string | null;
+  phone: string;
+  businessType: string;
+  stateRegion: string;
+  city: string;
+  township: string;
+  address: string;
+  description: string;
+  status: string;
+  approvedAt: string;
+};
+
+export type MerchantOverview = {
+  products: number;
+  activeProducts: number;
+  orders: number;
+  pendingOrders: number;
+  revenue: number;
+};
+
+export type MerchantProductRecord = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: string;
+  stock: number;
+  status: "draft" | "active" | "archived";
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ProductData = {
   id: string;
   title: string;
@@ -117,7 +191,7 @@ export type CartItem = {
 };
 
 export const formatMoney = (value: number) =>
-  `¥${value.toLocaleString("zh-CN")}`;
+  `Ks ${value.toLocaleString("zh-CN")}`;
 
 // These are navigation categories, not mock business records.
 export const services: ServiceItem[] = [

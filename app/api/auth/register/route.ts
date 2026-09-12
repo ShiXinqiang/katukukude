@@ -82,6 +82,7 @@ export async function POST(request: Request) {
           username: user.username,
           displayName: user.displayName,
           role: "user",
+          status: "active",
           createdAt: new Date().toISOString(),
         },
       },

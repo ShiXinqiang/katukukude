@@ -19,6 +19,7 @@ type UserRow = {
   username: string;
   display_name: string;
   role: UserRole | string;
+  status?: string;
   password_hash: string;
   created_at: Date | string;
 };
@@ -63,7 +64,9 @@ export async function ensureAuthSchema() {
     );
 
     ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS role VARCHAR(16) NOT NULL DEFAULT 'user';
+      ADD COLUMN IF NOT EXISTS role VARCHAR(16) NOT NULL DEFAULT 'user',
+      ADD COLUMN IF NOT EXISTS status VARCHAR(16) NOT NULL DEFAULT 'active',
+      ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
     CREATE TABLE IF NOT EXISTS sessions (
       token_hash TEXT PRIMARY KEY,
@@ -84,7 +87,8 @@ export function toAuthUser(row: UserRow): AuthUser {
     id: row.id,
     username: row.username,
     displayName: row.display_name,
-    role: row.role === "admin" ? "admin" : "user",
+    role: row.role === "admin" ? "admin" : row.role === "merchant" ? "merchant" : "user",
+    status: row.status === "suspended" ? "suspended" : "active",
     createdAt: new Date(row.created_at).toISOString(),
   };
 }
@@ -124,10 +128,10 @@ export async function getCurrentUser() {
 
   const database = await ensureAuthSchema();
   const result = await database.query<UserRow>(
-    `SELECT u.id, u.username, u.display_name, u.role, u.password_hash, u.created_at
+    `SELECT u.id, u.username, u.display_name, u.role, u.status, u.password_hash, u.created_at
      FROM sessions s
      INNER JOIN users u ON u.id = s.user_id
-     WHERE s.token_hash = $1 AND s.expires_at > NOW()
+     WHERE s.token_hash = $1 AND s.expires_at > NOW() AND u.status = 'active'
      LIMIT 1`,
     [hashSessionToken(token)],
   );

@@ -13,6 +13,11 @@ import {
   LayoutDashboard,
   LogOut,
   Megaphone,
+  FileText,
+  Power,
+  Store,
+  Trash2,
+  UserX,
   RefreshCw,
   Search,
   Send,
@@ -27,10 +32,12 @@ import type {
   AdminOverview,
   AdminUserRecord,
   AuthUser,
+  MerchantApplicationRecord,
   UserRole,
+  UserStatus,
 } from "../../lib/data";
 
-type AdminSection = "overview" | "users" | "orders" | "broadcasts";
+type AdminSection = "overview" | "users" | "merchantApplications" | "orders" | "broadcasts";
 
 const navItems: Array<{
   key: AdminSection;
@@ -39,6 +46,7 @@ const navItems: Array<{
 }> = [
   { key: "overview", label: "概览", icon: LayoutDashboard },
   { key: "users", label: "用户管理", icon: Users },
+  { key: "merchantApplications", label: "商家审核", icon: Store },
   { key: "orders", label: "订单中心", icon: ClipboardList },
   { key: "broadcasts", label: "全员广播", icon: Megaphone },
 ];
@@ -87,7 +95,7 @@ function formatDate(value: string) {
 
 function formatAmount(value: string | number | null) {
   const amount = Number(value);
-  return Number.isFinite(amount) ? `¥${amount.toFixed(2)}` : "—";
+  return Number.isFinite(amount) ? `Ks ${amount.toLocaleString("zh-CN", { maximumFractionDigits: 2 })}` : "—";
 }
 
 function statusLabel(value: string) {
@@ -106,11 +114,15 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
     orders: 0,
     broadcasts: 0,
     notifications: 0,
+    merchants: 0,
+    pendingApplications: 0,
   });
   const [users, setUsers] = useState<AdminUserRecord[]>([]);
   const [userSearch, setUserSearch] = useState("");
   const [userPage, setUserPage] = useState(1);
   const [userTotal, setUserTotal] = useState(0);
+  const [applications, setApplications] = useState<MerchantApplicationRecord[]>([]);
+  const [applicationStatus, setApplicationStatus] = useState("pending");
   const [orders, setOrders] = useState<AdminOrderRecord[]>([]);
   const [orderSearch, setOrderSearch] = useState("");
   const [orderPage, setOrderPage] = useState(1);
@@ -158,6 +170,22 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
       setUsers(result.users);
       setUserPage(result.page);
       setUserTotal(result.total);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const loadApplications = async (status = applicationStatus) => {
+    setLoading("merchantApplications");
+    setError("");
+    try {
+      const result = await requestJson<{ applications: MerchantApplicationRecord[] }>(
+        `/api/admin/merchant-applications?status=${status}`,
+      );
+      setApplications(result.applications);
+      setApplicationStatus(status);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -213,6 +241,7 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
 
   useEffect(() => {
     if (section === "users") void loadUsers(1);
+    if (section === "merchantApplications") void loadApplications();
     if (section === "orders") void loadOrders(1);
     if (section === "broadcasts") void loadBroadcasts();
   }, [section]);
@@ -234,29 +263,62 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
     }
   };
 
-  const updateUserRole = async (user: AdminUserRecord) => {
-    const nextRole: UserRole = user.role === "admin" ? "user" : "admin";
-    if (
-      !window.confirm(
-        nextRole === "admin"
-          ? `确定将 ${user.username} 设为管理员吗？`
-          : `确定移除 ${user.username} 的管理员权限吗？`,
-      )
-    ) {
-      return;
-    }
-
+  const updateUser = async (
+    user: AdminUserRecord,
+    changes: { role?: UserRole; status?: UserStatus; revokeSessions?: boolean },
+    success: string,
+  ) => {
     setLoading(`user-${user.id}`);
     setError("");
     try {
       await requestJson(`/api/admin/users/${user.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: nextRole }),
+        body: JSON.stringify(changes),
       });
-      setNotice("用户角色已更新");
-      await loadUsers(userPage);
-      await loadOverview();
+      setNotice(success);
+      await Promise.all([loadUsers(userPage), loadOverview()]);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const deleteUser = async (user: AdminUserRecord) => {
+    if (!window.confirm(`删除账号“${user.username}”及其关联资料？此操作不可撤销。`)) return;
+    setLoading(`user-${user.id}`);
+    setError("");
+    try {
+      await requestJson(`/api/admin/users/${user.id}`, { method: "DELETE" });
+      setNotice("用户账号已删除");
+      await Promise.all([loadUsers(userPage), loadOverview()]);
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const reviewApplication = async (
+    application: MerchantApplicationRecord,
+    status: "approved" | "rejected",
+  ) => {
+    const reviewNote = status === "rejected"
+      ? window.prompt("请输入拒绝原因（用户会在消息中心看到）")?.trim()
+      : window.prompt("审核备注（可选）")?.trim() || "";
+    if (status === "rejected" && !reviewNote) return;
+    if (status === "approved" && !window.confirm(`确认通过“${application.storeNameCn}”的入驻申请？`)) return;
+    setLoading(`application-${application.id}`);
+    setError("");
+    try {
+      await requestJson(`/api/admin/merchant-applications/${application.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status, reviewNote }),
+      });
+      setNotice(status === "approved" ? "审核通过，商家权限已自动开通" : "已拒绝申请并通知用户");
+      await Promise.all([loadApplications(applicationStatus), loadOverview(), loadUsers(1)]);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -466,7 +528,22 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
                   void loadUsers(1, nextSearch);
                 }}
                 onPage={(nextPage) => void loadUsers(nextPage)}
-                onRoleChange={updateUserRole}
+                onUserUpdate={(target, changes, success) =>
+                  void updateUser(target, changes, success)
+                }
+                onDelete={(target) => void deleteUser(target)}
+              />
+            )}
+            {section === "merchantApplications" && (
+              <MerchantApplicationsPanel
+                applications={applications}
+                status={applicationStatus}
+                loading={loading === "merchantApplications"}
+                actionLoading={loading}
+                onStatus={(nextStatus) => void loadApplications(nextStatus)}
+                onReview={(application, status) =>
+                  void reviewApplication(application, status)
+                }
               />
             )}
             {section === "orders" && (
@@ -531,6 +608,8 @@ function OverviewPanel({
     { label: "活跃会话", value: overview.activeSessions, icon: Activity, tone: "bg-[#edf4ef] text-[#668675]" },
     { label: "订单总数", value: overview.orders, icon: ClipboardList, tone: "bg-[#f5e9e1] text-[#b78369]" },
     { label: "通知总数", value: overview.notifications, icon: BarChart3, tone: "bg-[#eeeaf2] text-[#897a9c]" },
+    { label: "认证商家", value: overview.merchants, icon: Store, tone: "bg-[#edf4ef] text-[#668675]" },
+    { label: "待审申请", value: overview.pendingApplications, icon: FileText, tone: "bg-[#fff2e8] text-[#b78369]" },
   ];
 
   return (
@@ -553,7 +632,7 @@ function OverviewPanel({
         </button>
       </div>
 
-      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map(({ label, value, icon: Icon, tone }) => (
           <div key={label} className="rounded-2xl bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
@@ -579,12 +658,18 @@ function OverviewPanel({
             </div>
             <ShieldCheck size={22} className="text-[#7189a1]" />
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <QuickLink
               icon={Users}
               title="用户管理"
               description={`${overview.users} 名用户`}
               onClick={() => onNavigate("users")}
+            />
+            <QuickLink
+              icon={Store}
+              title="商家审核"
+              description={`${overview.pendingApplications} 条待审核`}
+              onClick={() => onNavigate("merchantApplications")}
             />
             <QuickLink
               icon={ClipboardList}
@@ -627,7 +712,8 @@ function UsersPanel({
   search,
   onSearch,
   onPage,
-  onRoleChange,
+  onUserUpdate,
+  onDelete,
 }: {
   users: AdminUserRecord[];
   adminId: string;
@@ -637,7 +723,12 @@ function UsersPanel({
   search: string;
   onSearch: (search: string) => void;
   onPage: (page: number) => void;
-  onRoleChange: (user: AdminUserRecord) => void;
+  onUserUpdate: (
+    user: AdminUserRecord,
+    changes: { role?: UserRole; status?: UserStatus; revokeSessions?: boolean },
+    success: string,
+  ) => void;
+  onDelete: (user: AdminUserRecord) => void;
 }) {
   const [searchInput, setSearchInput] = useState(search);
   const totalPages = Math.max(1, Math.ceil(total / 20));
@@ -646,7 +737,7 @@ function UsersPanel({
     <section>
       <PanelIntro
         title="用户管理"
-        description="查看注册账号并维护管理员角色权限。"
+        description="管理角色、账号状态、登录会话与用户数据。"
         icon={Users}
       />
 
@@ -697,15 +788,51 @@ function UsersPanel({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-3 sm:justify-end">
+                <div className="flex flex-wrap items-center justify-end gap-2">
                   <RoleBadge role={user.role} />
+                  <UserStatusBadge status={user.status} />
+                  <select
+                    value={user.role}
+                    disabled={user.id === adminId || loading}
+                    onChange={(event) => {
+                      const role = event.target.value as UserRole;
+                      if (window.confirm(`确认将 ${user.username} 的角色改为 ${role === "admin" ? "管理员" : role === "merchant" ? "商家" : "普通用户"}？`)) {
+                        onUserUpdate(user, { role }, "用户角色已更新");
+                      }
+                    }}
+                    className="rounded-full border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-500 disabled:opacity-40"
+                  >
+                    <option value="user">普通用户</option>
+                    <option value="merchant">商家</option>
+                    <option value="admin">管理员</option>
+                  </select>
                   <button
                     type="button"
                     disabled={user.id === adminId || loading}
-                    onClick={() => onRoleChange(user)}
-                    className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500 transition hover:border-[#7189a1] hover:text-[#7189a1] disabled:cursor-not-allowed disabled:opacity-40"
+                    onClick={() => onUserUpdate(
+                      user,
+                      { status: user.status === "active" ? "suspended" : "active" },
+                      user.status === "active" ? "账号已停用并强制下线" : "账号已恢复",
+                    )}
+                    className="flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs text-slate-500 disabled:opacity-40"
                   >
-                    {user.role === "admin" ? "移除管理员" : "设为管理员"}
+                    <Power size={12} />{user.status === "active" ? "停用" : "恢复"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => onUserUpdate(user, { revokeSessions: true }, "该用户已强制退出所有设备")}
+                    className="flex items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs text-slate-500 disabled:opacity-40"
+                  >
+                    <UserX size={12} />下线
+                  </button>
+                  <button
+                    type="button"
+                    disabled={user.id === adminId || loading}
+                    onClick={() => onDelete(user)}
+                    className="flex items-center gap-1 rounded-full border border-[#f1d9d4] px-2.5 py-1.5 text-xs text-[#bf7165] disabled:opacity-40"
+                  >
+                    <Trash2 size={12} />删除
                   </button>
                 </div>
               </div>
@@ -1099,6 +1226,79 @@ function BroadcastPanel({
   );
 }
 
+function MerchantApplicationsPanel({
+  applications,
+  status,
+  loading,
+  actionLoading,
+  onStatus,
+  onReview,
+}: {
+  applications: MerchantApplicationRecord[];
+  status: string;
+  loading: boolean;
+  actionLoading: string | null;
+  onStatus: (status: string) => void;
+  onReview: (application: MerchantApplicationRecord, status: "approved" | "rejected") => void;
+}) {
+  const labels: Record<string, string> = { pending: "待审核", approved: "已通过", rejected: "已拒绝", all: "全部" };
+  return (
+    <section>
+      <PanelIntro title="商家入驻审核" description="核验经营主体、缅甸联系方式、地址与证明材料，通过后自动开通商家版。" icon={Store} />
+      <div className="mt-6 flex gap-2 overflow-x-auto">
+        {Object.entries(labels).map(([key, label]) => (
+          <button type="button" key={key} onClick={() => onStatus(key)} className={`shrink-0 rounded-full px-4 py-2 text-xs ${status === key ? "bg-[#7189a1] text-white" : "bg-white text-slate-500"}`}>{label}</button>
+        ))}
+      </div>
+      <div className="mt-4 space-y-4">
+        {loading ? <TableSkeleton rows={5} /> : applications.length === 0 ? (
+          <div className="rounded-2xl bg-white shadow-sm"><EmptyPanel title="暂无商家申请" description="用户提交的真实入驻资料会显示在这里。" /></div>
+        ) : applications.map((application) => (
+          <article key={application.id} className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-base font-bold">{application.storeNameCn}</h3>
+                  {application.storeNameMm && <span className="text-xs text-slate-400">{application.storeNameMm}</span>}
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] ${application.status === "approved" ? "bg-[#edf4ef] text-[#5f816e]" : application.status === "rejected" ? "bg-[#fff0ed] text-[#b96158]" : "bg-[#fff2e8] text-[#ad795d]"}`}>{labels[application.status]}</span>
+                </div>
+                <p className="mt-2 text-xs text-slate-400">申请人：{application.displayName}（{application.username}） · {formatDate(application.submittedAt)}</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  <DetailCell label="法人 / 经营者" value={application.legalName} />
+                  <DetailCell label="联系人" value={`${application.contactName} · ${application.phone}`} />
+                  <DetailCell label="经营类型" value={application.businessType} />
+                  <DetailCell label="身份证 / 护照" value={application.identityNo} />
+                  <DetailCell label="营业执照" value={application.licenseNo || "未提供"} />
+                  <DetailCell label="地区" value={`${application.stateRegion} · ${application.city} · ${application.township}`} />
+                </div>
+                <div className="mt-3 rounded-xl bg-[#f7f9fa] p-4 text-xs">
+                  <p className="font-semibold text-slate-600">经营地址</p>
+                  <p className="mt-2 leading-5 text-slate-400">{application.address}</p>
+                  <p className="mt-3 font-semibold text-slate-600">店铺介绍</p>
+                  <p className="mt-2 leading-5 text-slate-400">{application.description}</p>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {application.documentIds.map((id, index) => (
+                    <a key={id} href={`/api/merchant/application/documents/${id}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#edf2f5] px-3 py-2 text-xs text-[#667f98]"><FileText size={14} />证明文件 {index + 1}</a>
+                  ))}
+                  {application.mapLink && <a href={application.mapLink} target="_blank" rel="noreferrer" className="rounded-full bg-[#edf4ef] px-3 py-2 text-xs text-[#5f816e]">查看地图位置</a>}
+                </div>
+                {application.reviewNote && <p className="mt-3 rounded-xl bg-[#fff7f3] p-3 text-xs text-[#a96f58]">审核备注：{application.reviewNote}</p>}
+              </div>
+              {application.status === "pending" && (
+                <div className="flex shrink-0 gap-2 lg:flex-col">
+                  <button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "approved")} className="flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#7189a1] px-5 text-xs font-semibold text-white disabled:opacity-50"><CheckCircle2 size={15} />通过</button>
+                  <button type="button" disabled={actionLoading === `application-${application.id}`} onClick={() => onReview(application, "rejected")} className="h-10 rounded-full border border-[#edcec7] px-5 text-xs text-[#b96158] disabled:opacity-50">拒绝</button>
+                </div>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function PanelIntro({
   title,
   description,
@@ -1150,16 +1350,18 @@ function QuickLink({
 
 function RoleBadge({ role }: { role: UserRole }) {
   return (
-    <span
-      className={`rounded-full px-2.5 py-1 text-[11px] ${
-        role === "admin"
-          ? "bg-[#e8eef2] text-[#627b94]"
-          : "bg-[#f4f7f8] text-slate-400"
-      }`}
-    >
-      {role === "admin" ? "管理员" : "普通用户"}
+    <span className={`rounded-full px-2.5 py-1 text-[11px] ${
+      role === "admin" ? "bg-[#e8eef2] text-[#627b94]"
+        : role === "merchant" ? "bg-[#edf4ef] text-[#5f816e]"
+        : "bg-[#f4f7f8] text-slate-400"
+    }`}>
+      {role === "admin" ? "管理员" : role === "merchant" ? "商家" : "普通用户"}
     </span>
   );
+}
+
+function UserStatusBadge({ status }: { status: UserStatus }) {
+  return <span className={`rounded-full px-2.5 py-1 text-[11px] ${status === "active" ? "bg-[#edf4ef] text-[#5f816e]" : "bg-[#fff0ed] text-[#b96158]"}`}>{status === "active" ? "正常" : "已停用"}</span>;
 }
 
 function StatusBadge({ value, payment = false }: { value: string; payment?: boolean }) {

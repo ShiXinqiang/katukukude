@@ -121,7 +121,13 @@ export function ProfilePage({
 
         <button
           type="button"
-          onClick={() => onNavigate("publish")}
+          onClick={() => {
+            if (user?.role === "merchant") {
+              window.location.assign("/merchant");
+            } else {
+              onNavigate("merchantApply");
+            }
+          }}
           className="flex w-full items-center justify-between overflow-hidden rounded-2xl bg-[#e7edf1] px-4 py-4 text-left shadow-sm"
         >
           <span className="flex items-center gap-3">
@@ -130,15 +136,17 @@ export function ProfilePage({
             </span>
             <span>
               <span className="block text-sm font-bold text-slate-700">
-                商家入驻
+                {user?.role === "merchant" ? "商家版" : "商家入驻申请"}
               </span>
               <span className="mt-1 block text-[11px] text-slate-500">
-                让更多人发现你的店铺
+                {user?.role === "merchant"
+                  ? "管理店铺、商品与订单"
+                  : "提交经营资料，审核通过后开通"}
               </span>
             </span>
           </span>
           <span className="flex items-center gap-1 rounded-full bg-[#7189a1] px-3 py-2 text-xs font-medium text-white">
-            去入驻
+            {user?.role === "merchant" ? "进入" : "去申请"}
             <ChevronRight size={13} />
           </span>
         </button>

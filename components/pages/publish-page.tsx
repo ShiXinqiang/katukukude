@@ -84,7 +84,7 @@ export function PublishPage({ onBack }: { onBack: () => void }) {
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <label className="flex items-center border-b border-slate-100 px-4 py-4">
             <span className="w-20 text-sm text-slate-600">价格</span>
-            <span className="mr-1 text-sm text-[#df7066]">¥</span>
+            <span className="mr-1 text-sm text-[#df7066]">Ks </span>
             <input
               value={price}
               onChange={(event) => setPrice(event.target.value)}
