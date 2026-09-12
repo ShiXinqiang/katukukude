@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     }
 
     const documentIds = Array.isArray(body.documentIds)
-      ? [...new Set(body.documentIds.filter((id): id is string => typeof id === "string"))].slice(0, 8)
+      ? Array.from(new Set(body.documentIds.filter((id): id is string => typeof id === "string"))).slice(0, 8)
       : [];
     const database = await ensureMerchantSchema();
     const documents = documentIds.length
