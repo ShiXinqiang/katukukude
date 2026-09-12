@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { UserRole, UserStatus } from "../../../../../lib/data";
+import type { AdminUserRecord, UserRole, UserStatus } from "../../../../../lib/data";
 import { getCurrentAdmin } from "../../../../../lib/admin";
 import { ensureMerchantSchema } from "../../../../../lib/merchant";
 
