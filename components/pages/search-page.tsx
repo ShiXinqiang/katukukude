@@ -23,11 +23,6 @@ export function SearchResultsPage({
 }) {
   const [keyword, setKeyword] = useState(initialKeyword);
   const normalized = keyword.trim().toLowerCase();
-  const forceEmpty =
-    normalized.length === 0 ||
-    normalized.includes("无结果") ||
-    normalized.includes("不存在") ||
-    normalized === "xyz";
 
   const matched = catalogProducts.filter((product) => {
     const haystack = [
@@ -42,11 +37,7 @@ export function SearchResultsPage({
     return haystack.includes(normalized);
   });
 
-  const results = forceEmpty
-    ? []
-    : matched.length > 0
-      ? matched
-      : catalogProducts;
+  const results = matched;
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f6f8] pb-28">
