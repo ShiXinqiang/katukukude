@@ -1,6 +1,8 @@
 # 卡兔服务导航
 
-基于 Next.js、React、Tailwind CSS 和 Lucide React 的移动端 H5 原型。
+基于 Next.js、React、Tailwind CSS、Lucide React 和 Railway PostgreSQL 的移动端 H5 原型。
+
+数据库连接由 `DATABASE_URL` 提供，`/api/health` 可用于检查 PostgreSQL 是否连通。
 
 ## 本地运行
 
