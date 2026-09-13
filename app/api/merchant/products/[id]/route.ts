@@ -1,52 +1,8 @@
-import { NextResponse } from "next/server";
-import { cleanText, ensureMerchantSchema, isMerchantRequiredError, requireMerchant } from "../../../../../lib/merchant";
-
-export const dynamic = "force-dynamic";
-
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const { merchant } = await requireMerchant();
-    const body = (await request.json()) as Record<string, unknown>;
-    const database = await ensureMerchantSchema();
-    const current = await database.query<{ title: string; description: string; category: string; price: string; stock: number; status: string }>(
-      "SELECT title, description, category, price::text, stock, status FROM products WHERE id = $1 AND merchant_id = $2 LIMIT 1",
-      [params.id, merchant.id],
-    );
-    if (!current.rows[0]) return NextResponse.json({ message: "商品不存在" }, { status: 404 });
-    const row = current.rows[0];
-    const title = body.title === undefined ? row.title : cleanText(body.title, 200);
-    const description = body.description === undefined ? row.description : cleanText(body.description, 3000);
-    const category = body.category === undefined ? row.category : cleanText(body.category, 80);
-    const price = body.price === undefined ? Number(row.price) : Number(body.price);
-    const stock = body.stock === undefined ? row.stock : Number(body.stock);
-    const status = body.status === undefined ? row.status : body.status;
-    if (!title || !description || !category || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0 || !["draft","active","archived"].includes(String(status))) {
-      return NextResponse.json({ message: "商品信息无效" }, { status: 400 });
-    }
-    const result = await database.query(
-      `UPDATE products SET title=$3, description=$4, category=$5, price=$6,
-              stock=$7, status=$8, updated_at=NOW()
-        WHERE id=$1 AND merchant_id=$2
-        RETURNING id, title, description, category, price::text, stock, status,
-                  images, created_at AS "createdAt", updated_at AS "updatedAt"`,
-      [params.id, merchant.id, title, description, category, price, stock, status],
-    );
-    return NextResponse.json({ product: result.rows[0] });
-  } catch (error) {
-    if (isMerchantRequiredError(error)) return NextResponse.json({ message: "需要商家权限" }, { status: 403 });
-    return NextResponse.json({ message: "商品更新失败" }, { status: 500 });
-  }
-}
-
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-  try {
-    const { merchant } = await requireMerchant();
-    const database = await ensureMerchantSchema();
-    const result = await database.query("DELETE FROM products WHERE id=$1 AND merchant_id=$2 RETURNING id", [params.id, merchant.id]);
-    if (!result.rows[0]) return NextResponse.json({ message: "商品不存在" }, { status: 404 });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    if (isMerchantRequiredError(error)) return NextResponse.json({ message: "需要商家权限" }, { status: 403 });
-    return NextResponse.json({ message: "商品删除失败" }, { status: 500 });
-  }
-}
+import {NextResponse} from "next/server";import {cleanText,ensureMerchantSchema,isMerchantRequiredError,requireMerchant} from "../../../../../lib/merchant";
+export const dynamic="force-dynamic";const arr=(v:unknown,max=12)=>Array.isArray(v)?v.filter(x=>typeof x==="string").map(x=>cleanText(x,80)).filter(Boolean).slice(0,max):[];const specs=(v:unknown)=>Array.isArray(v)?v.slice(0,8).map(x=>{const o=x&&typeof x==="object"?x as Record<string,unknown>:{};return{name:cleanText(o.name,40),values:arr(o.values,20)}}).filter(x=>x.name&&x.values.length):[];
+export async function PATCH(request:Request,{params}:{params:{id:string}}){try{const{merchant}=await requireMerchant();const b=await request.json() as Record<string,unknown>,db=await ensureMerchantSchema();const q=await db.query<any>("SELECT * FROM products WHERE id=$1 AND merchant_id=$2",[params.id,merchant.id]);if(!q.rows[0])return NextResponse.json({message:"商品不存在"},{status:404});const x=q.rows[0],title=b.title===undefined?x.title:cleanText(b.title,200),subtitle=b.subtitle===undefined?x.subtitle:cleanText(b.subtitle,160)||null,description=b.description===undefined?x.description:cleanText(b.description,5000),category=b.category===undefined?x.category:cleanText(b.category,80),price=b.price===undefined?Number(x.price):Number(b.price),originalPrice=b.originalPrice===undefined?(x.original_price===null?null:Number(x.original_price)):(b.originalPrice?Number(b.originalPrice):null),stock=b.stock===undefined?x.stock:Number(b.stock),shippingFee=b.shippingFee===undefined?Number(x.shipping_fee):Number(b.shippingFee),requested=b.action==="submit"?"pending":b.action==="archive"?"archived":x.status;
+if(title.length<4||description.length<10||!category||!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0||!Number.isFinite(shippingFee)||shippingFee<0||originalPrice!==null&&(!Number.isFinite(originalPrice)||originalPrice<price))return NextResponse.json({message:"商品资料无效"},{status:400});
+if(b.action==="submit"&&stock<1)return NextResponse.json({message:"库存大于0才能提交审核"},{status:400});if(!["draft","rejected","archived","active"].includes(x.status)&&b.action==="submit")return NextResponse.json({message:"当前状态不能重复提交"},{status:409});
+const r=await db.query(`UPDATE products SET title=$3,subtitle=$4,description=$5,category=$6,price=$7,original_price=$8,stock=$9,status=$10,images=$11::jsonb,tags=$12::jsonb,specifications=$13::jsonb,shipping_fee=$14,free_shipping=$15,service_guarantees=$16::jsonb,rejection_reason=CASE WHEN $10='pending' THEN NULL ELSE rejection_reason END,updated_at=NOW() WHERE id=$1 AND merchant_id=$2 RETURNING id,status`,[params.id,merchant.id,title,subtitle,description,category,price,originalPrice,stock,requested,JSON.stringify(b.images===undefined?x.images:arr(b.images,8)),JSON.stringify(b.tags===undefined?x.tags:arr(b.tags,8)),JSON.stringify(b.specifications===undefined?x.specifications:specs(b.specifications)),shippingFee,b.freeShipping===undefined?x.free_shipping:b.freeShipping===true,JSON.stringify(b.serviceGuarantees===undefined?x.service_guarantees:arr(b.serviceGuarantees,8))]);return NextResponse.json({success:true,product:r.rows[0]})
+}catch(e){if(isMerchantRequiredError(e))return NextResponse.json({message:"需要商家权限"},{status:403});console.error(e);return NextResponse.json({message:"商品更新失败"},{status:500})}}
+export async function DELETE(_r:Request,{params}:{params:{id:string}}){try{const{merchant}=await requireMerchant();const db=await ensureMerchantSchema();const r=await db.query("DELETE FROM products WHERE id=$1 AND merchant_id=$2 AND status IN ('draft','rejected','archived') RETURNING id",[params.id,merchant.id]);if(!r.rows[0])return NextResponse.json({message:"销售中或审核中的商品不能删除"},{status:409});return NextResponse.json({success:true})}catch(e){if(isMerchantRequiredError(e))return NextResponse.json({message:"需要商家权限"},{status:403});return NextResponse.json({message:"删除失败"},{status:500})}}
