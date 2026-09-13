@@ -6,10 +6,10 @@
 
 :root {
   color-scheme: light;
-  --katu-accent: 106 132 157;
-  --katu-accent-strong: 91 117 142;
+  --katu-accent: 176 126 89;
+  --katu-accent-strong: 151 101 68;
   --katu-text: 42 55 70;
-  --katu-glass: 255 255 255;
+  --katu-glass: 255 250 244;
   --katu-glass-alpha: .70;
   --katu-glass-strong: .84;
   --katu-border-alpha: .58;
@@ -19,7 +19,7 @@
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; background: #dce5ec; }
+html { min-height: 100%; background: #e9dfd4; }
 body {
   margin: 0;
   min-width: 320px;
@@ -31,9 +31,9 @@ body {
   font-kerning: normal;
   background:
     radial-gradient(circle at 12% 8%, rgba(255,255,255,.96) 0 12%, transparent 38%),
-    radial-gradient(circle at 90% 20%, rgba(176,201,220,.48), transparent 36%),
-    radial-gradient(circle at 40% 90%, rgba(220,205,195,.36), transparent 38%),
-    linear-gradient(145deg,#edf3f7 0%,#dce6ed 46%,#e8edf1 100%);
+    radial-gradient(circle at 90% 20%, rgba(226,184,142,.44), transparent 36%),
+    radial-gradient(circle at 40% 90%, rgba(236,205,167,.38), transparent 38%),
+    linear-gradient(145deg,#f7f0e8 0%,#eadfd4 46%,#f2e8dd 100%);
   background-attachment: fixed;
 }
 
@@ -46,8 +46,8 @@ body::after {
   filter: blur(12px);
   pointer-events: none;
 }
-body::before { width: 210px; height: 210px; left: -70px; top: 18%; background: rgba(163,190,210,.25); }
-body::after { width: 250px; height: 250px; right: -100px; bottom: 8%; background: rgba(218,194,181,.22); }
+body::before { width: 210px; height: 210px; left: -70px; top: 18%; background: rgba(222,177,132,.27); }
+body::after { width: 250px; height: 250px; right: -100px; bottom: 8%; background: rgba(238,190,139,.25); }
 
 button,input,textarea,select { font: inherit; }
 button {
@@ -62,7 +62,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 ::selection { background: #d6e1e8; color: #334155; }
 
 .katu-app-shell {
-  background: rgba(244,247,249,.46) !important;
+  background: rgba(251,245,238,.42) !important;
   border-left: 1px solid rgba(255,255,255,.56);
   border-right: 1px solid rgba(255,255,255,.56);
   box-shadow: 0 0 70px rgba(73,91,108,.13);
@@ -86,7 +86,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   width: calc(100% - 20px) !important;
   height: 68px;
   border-radius: 25px;
-  background: rgba(250,252,253,.74) !important;
+  background: rgba(255,249,242,.76) !important;
   border: 1px solid rgba(255,255,255,.82) !important;
   box-shadow: 0 18px 50px rgba(54,70,86,.22), inset 0 1px 0 rgba(255,255,255,.95);
   -webkit-backdrop-filter: blur(26px) saturate(165%);
@@ -116,7 +116,7 @@ main button[class~="bg-white"][class*="rounded"] {
 main :where(section,article)[class*="shadow"],
 main div[class~="bg-white"][class*="shadow"] { box-shadow: var(--katu-shadow) !important; }
 main > header[class*="sticky"] {
-  background: rgba(244,247,249,.78) !important;
+  background: rgba(252,247,241,.8) !important;
   border-color: rgba(255,255,255,.74) !important;
   box-shadow: 0 8px 30px rgba(66,82,98,.07);
   -webkit-backdrop-filter: blur(24px) saturate(155%);
@@ -128,6 +128,20 @@ div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
   -webkit-backdrop-filter: blur(30px) saturate(150%);
   backdrop-filter: blur(30px) saturate(150%);
 }
+.katu-primary {
+  background: linear-gradient(145deg, rgb(var(--katu-accent)), rgb(var(--katu-accent-strong))) !important;
+  color: white !important;
+}
+:where(button,a)[class~="bg-[#7189a1]"],
+:where(button,a)[class~="bg-[#667f98]"],
+:where(button,a)[class~="bg-[#6f86a1]"] {
+  background: linear-gradient(145deg, rgb(var(--katu-accent)), rgb(var(--katu-accent-strong))) !important;
+  color: white !important;
+  border-color: rgba(255,255,255,.38) !important;
+  box-shadow: 0 9px 22px rgba(var(--katu-accent),.2);
+}
+:where(button,span,svg)[class~="text-[#7189a1]"],
+:where(button,span)[class~="text-[#667f99]"] { color: rgb(var(--katu-accent-strong)) !important; }
 input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
