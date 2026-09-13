@@ -336,3 +336,58 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   background-color: rgba(255,255,255,.66) !important;
   border-color: rgba(15,23,42,.09) !important;
 }
+
+
+/* 最终优先级修正：深黑底、主操作按钮、卡片内嵌输入 */
+:root[data-katu-theme="dark"] body > div > div[class*="bg-[#dfe6ec]"] {
+  background: #050506 !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell {
+  background: rgba(7,7,9,.90) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where(section,article,aside)[class*="rounded"],
+:root[data-katu-theme="dark"] .katu-app-shell div[class~="bg-white"][class*="rounded"] {
+  background-color: rgba(22,22,26,.74) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where(
+  button[class~="bg-[#7189a1]"],
+  a[class~="bg-[#7189a1]"],
+  button[class~="bg-[#667f98]"],
+  a[class~="bg-[#667f98]"],
+  button[class~="bg-[#6f86a1]"],
+  a[class~="bg-[#6f86a1]"],
+  .katu-primary
+) {
+  background: linear-gradient(145deg,#ffffff,#d8d8de) !important;
+  color: #08080a !important;
+  border-color: rgba(255,255,255,.72) !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(
+  button[class~="bg-[#7189a1]"],
+  a[class~="bg-[#7189a1]"],
+  button[class~="bg-[#667f98]"],
+  a[class~="bg-[#667f98]"],
+  button[class~="bg-[#6f86a1]"],
+  a[class~="bg-[#6f86a1]"],
+  .katu-primary
+) {
+  background: linear-gradient(145deg,#29292d,#050506) !important;
+  color: #fff !important;
+}
+:root[data-katu-theme] .katu-app-shell :where(label.flex,div.flex)[class*="items-center"] > input:not([type="checkbox"]):not([type="radio"]),
+:root[data-katu-theme] .katu-app-shell input[class*="bg-transparent"] {
+  min-height: 42px;
+  padding: 8px 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:root[data-katu-theme] .katu-app-shell :where(label.flex,div.flex)[class*="items-center"] > input:not([type="checkbox"]):not([type="radio"]):focus,
+:root[data-katu-theme] .katu-app-shell input[class*="bg-transparent"]:focus {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell textarea {
+  background: rgba(255,255,255,.055) !important;
+}
