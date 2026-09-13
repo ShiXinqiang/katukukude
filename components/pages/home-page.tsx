@@ -139,12 +139,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
           {products.slice(0,4).map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="min-w-[238px] snap-start overflow-hidden rounded-3xl bg-white text-left shadow-sm">
-              <SkeletonImage className="h-36 rounded-none" label={product.imageLabel} />
+              <span className="relative block"><SkeletonImage className="h-36 rounded-none" label={product.imageLabel} />{product.badge&&<span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-[#b16f5f]">{product.badge}</span>}{product.isOfficial&&<span className="absolute right-3 top-3 rounded-full bg-[#6f879d]/90 px-2.5 py-1 text-[10px] font-semibold text-white">官方</span>}</span>
               <div className="p-3.5">
-                <h3 className="truncate text-sm font-semibold text-slate-800">{product.title}</h3>
+                <h3 className="truncate text-sm font-semibold text-slate-800">{product.title}</h3>{product.promotionTitle&&<p className="mt-1 truncate text-[11px] text-[#b47763]">{product.promotionTitle}</p>}
                 <div className="mt-2 flex items-end justify-between">
                   <span className="text-lg font-bold text-[#d96f68]">{formatMoney(product.price)}</span>
-                  <span className="flex items-center gap-1 text-xs text-[#b48450]"><Star size={12} fill="currentColor"/>{product.rating}</span>
+                  <span className="flex items-center gap-1 text-xs text-[#b48450]"><Star size={12} fill={product.rating==="暂无"?"none":"currentColor"}/>{product.rating}</span>
                 </div>
               </div>
             </button>
@@ -163,10 +163,10 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
               <SkeletonImage className="h-[108px] w-[112px] shrink-0 rounded-2xl" label={product.imageLabel}/>
               <span className="min-w-0 flex-1 py-1">
                 <span className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">{product.title}</span>
-                <span className="mt-2 flex gap-1">{product.tags.map(t=><span key={t} className="rounded-md bg-[#f0f3f5] px-1.5 py-1 text-[10px] text-slate-500">{t}</span>)}</span>
+                <span className="mt-2 flex flex-wrap gap-1">{product.isOfficial&&<span className="rounded-md bg-[#e8eef2] px-1.5 py-1 text-[10px] text-[#607992]">官方认证</span>}{product.promotionTitle&&<span className="rounded-md bg-[#f8eae5] px-1.5 py-1 text-[10px] text-[#b47763]">{product.promotionTitle}</span>}{product.tags.map(t=><span key={t} className="rounded-md bg-[#f0f3f5] px-1.5 py-1 text-[10px] text-slate-500">{t}</span>)}</span>
                 <span className="mt-2 flex items-end justify-between">
                   <span><b className="text-lg text-[#d96f68]">{formatMoney(product.price)}</b><s className="ml-2 text-[10px] text-slate-400">{formatMoney(product.original)}</s></span>
-                  <span className="text-[10px] text-slate-400">{product.distance}</span>
+                  <span className="text-right text-[10px] text-slate-400"><span className="block">{product.sales}</span><span>{product.distance}</span></span>
                 </span>
               </span>
             </button>
