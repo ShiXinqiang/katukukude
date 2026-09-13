@@ -52,7 +52,8 @@ export default function Page(){
   {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
-  {view==="partner"&&<PartnerPage onBack={goBack}/>}\n  {view==="orders"&&<OrdersPage onBack={goBack}/>}
+  {view==="partner"&&<PartnerPage onBack={goBack}/>}
+  {view==="orders"&&<OrdersPage onBack={goBack}/>}
   {showBottomNav&&<BottomNav activeView={activeNav} onNavigate={navigate}/>}
  </div></div>;
 }
