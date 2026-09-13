@@ -2,7 +2,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Bike, CarFront, Home, Hotel, MoreHorizontal, Plane, ShoppingBag, ShoppingBasket, Smartphone, WalletCards, ArrowLeftRight, BellRing, TicketPercent, MessageCircle } from "lucide-react";
 
-export type View = "home"|"discover"|"scan"|"messages"|"profile"|"product"|"publish"|"merchantApply"|"login"|"cart"|"checkout"|"search"|"service"|"homeRoute"|"addresses"|"partner";
+export type View = "home"|"discover"|"scan"|"messages"|"profile"|"product"|"publish"|"merchantApply"|"login"|"cart"|"checkout"|"search"|"service"|"homeRoute"|"addresses"|"partner"|"orders";
 export type MainTab = "home"|"discover"|"scan"|"messages"|"profile";
 export type UserRole = "user"|"merchant"|"admin";
 export type UserStatus = "active"|"suspended";
