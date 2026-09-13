@@ -6,72 +6,124 @@
 
 :root {
   color-scheme: light;
+  --katu-accent: 106 132 157;
+  --katu-accent-strong: 91 117 142;
+  --katu-text: 42 55 70;
+  --katu-glass: 255 255 255;
+  --katu-glass-alpha: .70;
+  --katu-glass-strong: .84;
+  --katu-border-alpha: .58;
+  --katu-blur: 22px;
+  --katu-radius: 24px;
+  --katu-shadow: 0 18px 50px rgba(67, 83, 99, .12), inset 0 1px 0 rgba(255, 255, 255, .72);
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  background: #dfe6ec;
-}
-
+* { box-sizing: border-box; }
+html { min-height: 100%; background: #dce5ec; }
 body {
   margin: 0;
   min-width: 320px;
-  background: #dfe6ec;
-  color: #334155;
+  min-height: 100%;
+  color: rgb(var(--katu-text));
   font-family: "Noto Sans Myanmar", "Pyidaungsu", "Myanmar Text", "Padauk", "Noto Sans", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-kerning: normal;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255,255,255,.96) 0 12%, transparent 38%),
+    radial-gradient(circle at 90% 20%, rgba(176,201,220,.48), transparent 36%),
+    radial-gradient(circle at 40% 90%, rgba(220,205,195,.36), transparent 38%),
+    linear-gradient(145deg,#edf3f7 0%,#dce6ed 46%,#e8edf1 100%);
+  background-attachment: fixed;
 }
 
-button,
-input,
-textarea {
-  font: inherit;
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(12px);
+  pointer-events: none;
 }
+body::before { width: 210px; height: 210px; left: -70px; top: 18%; background: rgba(163,190,210,.25); }
+body::after { width: 250px; height: 250px; right: -100px; bottom: 8%; background: rgba(218,194,181,.22); }
 
+button,input,textarea,select { font: inherit; }
 button {
   -webkit-tap-highlight-color: transparent;
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), opacity .18s ease, background-color .2s ease, box-shadow .2s ease;
+}
+button:not(:disabled):active { transform: scale(.965); }
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible {
+  outline: 2px solid rgba(var(--katu-accent),.42);
+  outline-offset: 2px;
+}
+::selection { background: #d6e1e8; color: #334155; }
+
+.katu-app-shell {
+  background: rgba(244,247,249,.46) !important;
+  border-left: 1px solid rgba(255,255,255,.56);
+  border-right: 1px solid rgba(255,255,255,.56);
+  box-shadow: 0 0 70px rgba(73,91,108,.13);
+}
+.katu-glass {
+  background: rgba(var(--katu-glass),var(--katu-glass-alpha)) !important;
+  border: 1px solid rgba(255,255,255,var(--katu-border-alpha)) !important;
+  box-shadow: var(--katu-shadow);
+  -webkit-backdrop-filter: blur(var(--katu-blur)) saturate(145%);
+  backdrop-filter: blur(var(--katu-blur)) saturate(145%);
+}
+.katu-glass-strong {
+  background: rgba(var(--katu-glass),var(--katu-glass-strong)) !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+  box-shadow: var(--katu-shadow);
+  -webkit-backdrop-filter: blur(calc(var(--katu-blur) + 4px)) saturate(155%);
+  backdrop-filter: blur(calc(var(--katu-blur) + 4px)) saturate(155%);
+}
+.katu-floating-nav {
+  bottom: max(10px, env(safe-area-inset-bottom));
+  width: calc(100% - 20px) !important;
+  height: 68px;
+  border-radius: 25px;
+  background: rgba(250,252,253,.74) !important;
+  border: 1px solid rgba(255,255,255,.82) !important;
+  box-shadow: 0 18px 50px rgba(54,70,86,.22), inset 0 1px 0 rgba(255,255,255,.95);
+  -webkit-backdrop-filter: blur(26px) saturate(165%);
+  backdrop-filter: blur(26px) saturate(165%);
+}
+.katu-floating-button {
+  box-shadow: 0 12px 28px rgba(var(--katu-accent),.34), inset 0 1px 0 rgba(255,255,255,.3);
 }
 
-::selection {
-  background: #d6e1e8;
-  color: #334155;
+/* 将旧页面的纯白卡片统一提升为可全局调整的玻璃材质 */
+main :where(section, article, div)[class~="bg-white"],
+main :where(button)[class~="bg-white"] {
+  background-color: rgba(var(--katu-glass),var(--katu-glass-alpha)) !important;
+  border-color: rgba(255,255,255,var(--katu-border-alpha));
+  -webkit-backdrop-filter: blur(var(--katu-blur)) saturate(140%);
+  backdrop-filter: blur(var(--katu-blur)) saturate(140%);
 }
-
-.scrollbar-hidden {
-  scrollbar-width: none;
+main :where(section,article)[class*="shadow"],
+main :where(div)[class*="shadow-sm"] { box-shadow: var(--katu-shadow) !important; }
+main > header[class*="sticky"] {
+  background: rgba(244,247,249,.72) !important;
+  border-color: rgba(255,255,255,.7) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  backdrop-filter: blur(24px) saturate(155%);
 }
-
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
+input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+.scrollbar-hidden { scrollbar-width: none; }
+.scrollbar-hidden::-webkit-scrollbar { display: none; }
 
 @keyframes scanLine {
-  0%,
-  100% {
-    opacity: 0.35;
-    transform: translateY(-126px);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(126px);
-  }
+  0%,100% { opacity: .35; transform: translateY(-126px); }
+  50% { opacity: 1; transform: translateY(126px); }
 }
-
 @keyframes focusPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.98);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+  0%,100% { opacity: .55; transform: scale(.98); }
+  50% { opacity: 1; transform: scale(1); }
 }
