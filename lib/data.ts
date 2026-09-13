@@ -18,7 +18,7 @@ export type MerchantApplicationRecord={id:string;userId:string;username?:string;
 export type MerchantRecord={id:string;userId:string;storeNameCn:string;storeNameMm:string|null;phone:string;businessType:string;stateRegion:string;city:string;township:string;address:string;description:string;status:string;approvedAt:string};
 export type MerchantOverview={products:number;activeProducts:number;orders:number;pendingOrders:number;revenue:number};
 export type MerchantProductRecord={id:string;title:string;description:string;category:string;price:string;stock:number;status:"draft"|"active"|"archived";images:string[];createdAt:string;updatedAt:string};
-export type ProductData={id:string;title:string;subtitle:string;price:number;original:number;rating:string;distance:string;sales:string;tags:string[];store:string;imageLabel:string};
+export type ProductData={id:string;title:string;subtitle:string;description?:string;price:number;original:number;rating:string;distance:string;sales:string;tags:string[];store:string;imageLabel:string;images?:string[];category?:string;stock?:number};
 export type ServiceItem={name:string;icon:LucideIcon;tone:string};
 export type CartItem={id:string;shop:string;title:string;spec:string;unit:number;quantity:number;imageLabel:string};
 export const formatMoney=(value:number)=>`Ks ${value.toLocaleString("zh-CN")}`;
