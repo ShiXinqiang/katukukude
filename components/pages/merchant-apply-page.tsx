@@ -269,7 +269,7 @@ export function MerchantApplyPage({
               <PickerRow label="经营类型 *" value={form.businessType} placeholder="请选择经营类型" onClick={() => setPicker("business")} disabled={locked} />
               <label className="block py-3 text-xs text-slate-500">
                 店铺介绍 * <span className="float-right text-[10px] text-slate-300">{form.description.length}/50</span>
-                <textarea value={form.description} onChange={(event) => update("description", event.target.value.slice(0, 50))} disabled={locked} rows={3} maxLength={50} placeholder="请用 10–50 个字介绍主营业务和店铺特色" className="mt-2 w-full resize-none bg-transparent text-sm leading-6 text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
+                <textarea value={form.description} onChange={(event) => update("description", event.target.value.slice(0, 50))} disabled={locked} rows={3} maxLength={50} placeholder="请用 10–50 个字介绍主营业务和店铺特色" className="katu-field mt-2 w-full resize-none bg-transparent text-sm leading-6 text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
               </label>
             </FormCard>
 
@@ -287,7 +287,7 @@ export function MerchantApplyPage({
               <Field label="详细营业地址 *" value={form.address} onChange={(value) => update("address", value)} disabled={locked} maxLength={1000} multiline placeholder="街道、路口、楼层、门牌及附近明显地标" />
               <div className="py-3">
                 <div className="flex items-center justify-between"><span className="text-xs text-slate-500">地图 / 导航链接（可选）</span>{!locked && <button type="button" onClick={() => setLocationPickerOpen(true)} className="flex items-center gap-1 text-[11px] text-[#667f98]"><LocateFixed size={14} />自动填写</button>}</div>
-                <input value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
+                <input value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="katu-field mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
                 {form.mapLink && <a href={form.mapLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#667f98]"><ExternalLink size={13} />打开当前导航链接</a>}
               </div>
             </FormCard>
@@ -302,7 +302,7 @@ export function MerchantApplyPage({
               </div>
             </FormCard>
 
-            {!locked && <button type="submit" disabled={submitting} className="fixed bottom-3 left-1/2 z-30 flex h-12 w-[calc(100%-32px)] max-w-[358px] -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-[#7189a1] text-sm font-semibold text-white shadow-lg disabled:opacity-50">{submitting && <Loader2 size={17} className="animate-spin" />}{application?.status === "rejected" ? "修改后重新提交" : "提交入驻申请"}</button>}
+            {!locked && <button type="submit" disabled={submitting} className="katu-primary fixed bottom-3 left-1/2 z-30 flex h-12 w-[calc(100%-32px)] max-w-[358px] -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-[#7189a1] text-sm font-semibold text-white shadow-lg disabled:opacity-50">{submitting && <Loader2 size={17} className="animate-spin" />}{application?.status === "rejected" ? "修改后重新提交" : "提交入驻申请"}</button>}
           </form>
         )}
       </div>
@@ -324,7 +324,7 @@ function FormCard({ title, subtitle, children }: { title: string; subtitle: stri
 }
 
 function Field({ label, value, onChange, placeholder, disabled, multiline, maxLength, inputMode }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string; disabled?: boolean; multiline?: boolean; maxLength: number; inputMode?: "text" | "tel" | "email" | "url" }) {
-  const classes = "mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400";
+  const classes = "katu-field mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400";
   return <label className="block py-3 text-xs text-slate-500"><span>{label}</span>{multiline ? <textarea rows={3} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} disabled={disabled} maxLength={maxLength} className={classes + " resize-none leading-6"} /> : <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} disabled={disabled} maxLength={maxLength} inputMode={inputMode} className={classes} />}</label>;
 }
 
