@@ -530,3 +530,125 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   border: 1px solid rgba(255,255,255,.18) !important;
   box-shadow: 0 12px 28px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.14) !important;
 }
+
+
+/* 白色玻璃：清晰的黑色文字层级 */
+:root[data-katu-theme="light"] .katu-app-shell {
+  color: #17181b !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(.text-slate-900,.text-slate-800,.text-slate-700,.text-slate-600) {
+  color: #1c1d21 !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(.text-slate-500,.text-slate-400) {
+  color: #666a73 !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(input,textarea,select) {
+  color: #17181b !important;
+  caret-color: #050506 !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(input,textarea)::placeholder {
+  color: #8b9099 !important;
+  opacity: 1;
+}
+
+/* 前端灵动反馈 */
+@keyframes katuPageEnter {
+  from { opacity: 0; transform: translateY(7px) scale(.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes katuNavEnter {
+  from { opacity: 0; transform: translate(-50%,18px) scale(.96); }
+  to { opacity: 1; transform: translate(-50%,0) scale(1); }
+}
+@keyframes katuSoftPulse {
+  0%,100% { transform: translateY(0) scale(1); box-shadow: 0 12px 28px rgba(0,0,0,.24); }
+  50% { transform: translateY(-2px) scale(1.025); box-shadow: 0 17px 36px rgba(0,0,0,.30); }
+}
+
+:root[data-katu-theme] .katu-app-shell main {
+  animation: katuPageEnter .34s cubic-bezier(.22,.8,.24,1) both;
+}
+:root[data-katu-theme] .katu-app-shell .katu-floating-nav {
+  animation: katuNavEnter .42s cubic-bezier(.2,.85,.25,1) both;
+}
+:root[data-katu-theme] .katu-app-shell .katu-floating-button {
+  animation: katuSoftPulse 3.2s ease-in-out infinite;
+}
+
+:root[data-katu-theme] .katu-app-shell button {
+  position: relative;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform .18s cubic-bezier(.2,.85,.25,1),
+    background-color .2s ease,
+    border-color .2s ease,
+    color .2s ease,
+    box-shadow .22s ease,
+    filter .2s ease !important;
+}
+:root[data-katu-theme] .katu-app-shell button::after {
+  content: "";
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at center,rgba(255,255,255,.30),transparent 64%);
+  transition: opacity .18s ease;
+}
+:root[data-katu-theme="light"] .katu-app-shell button::after {
+  background: radial-gradient(circle at center,rgba(0,0,0,.12),transparent 64%);
+}
+:root[data-katu-theme] .katu-app-shell button:not(:disabled):active {
+  transform: scale(.955) translateY(1px) !important;
+  filter: brightness(1.06);
+}
+:root[data-katu-theme] .katu-app-shell button:not(:disabled):active::after {
+  opacity: 1;
+  transition-duration: .04s;
+}
+:root[data-katu-theme] .katu-app-shell button:disabled {
+  cursor: not-allowed;
+  filter: saturate(.55);
+}
+
+:root[data-katu-theme] .katu-app-shell :where(section,article)[class*="rounded"] {
+  transition: transform .24s cubic-bezier(.2,.85,.25,1),box-shadow .24s ease,border-color .22s ease;
+}
+:root[data-katu-theme] .katu-app-shell button.group > span:first-child {
+  transition: transform .22s cubic-bezier(.2,.9,.25,1),box-shadow .22s ease !important;
+}
+:root[data-katu-theme] .katu-app-shell button.group:active > span:first-child {
+  transform: translateY(-3px) scale(1.08) !important;
+}
+:root[data-katu-theme] .katu-app-shell :where(input,textarea,select) {
+  transition: color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease !important;
+}
+:root[data-katu-theme] .katu-app-shell form[class*="rounded"] {
+  transition: width .28s cubic-bezier(.2,.8,.2,1),background-color .22s ease,border-color .22s ease,box-shadow .22s ease,transform .2s ease;
+}
+:root[data-katu-theme] .katu-app-shell form[class*="rounded"]:focus-within {
+  border-color: rgba(var(--katu-accent),.42) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.10) !important;
+  transform: translateY(-1px);
+}
+
+@media (hover:hover) and (pointer:fine) {
+  :root[data-katu-theme] .katu-app-shell button:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+  }
+  :root[data-katu-theme] .katu-app-shell :where(section,article)[class*="rounded"]:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--katu-accent),.24) !important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  :root[data-katu-theme] .katu-app-shell main,
+  :root[data-katu-theme] .katu-app-shell .katu-floating-nav,
+  :root[data-katu-theme] .katu-app-shell .katu-floating-button {
+    animation: none !important;
+  }
+}
