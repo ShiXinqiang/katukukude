@@ -1,6 +1,6 @@
 
 import type { LucideIcon } from "lucide-react";
-import { Bike, CarFront, Home, Hotel, MoreHorizontal, Plane, ShoppingBag, ShoppingBasket, Smartphone, WalletCards, ArrowLeftRight } from "lucide-react";
+import { Bike, CarFront, Home, Hotel, MoreHorizontal, Plane, ShoppingBag, ShoppingBasket, Smartphone, WalletCards, ArrowLeftRight, BellRing, TicketPercent, MessageCircle } from "lucide-react";
 
 export type View = "home"|"discover"|"scan"|"messages"|"profile"|"product"|"publish"|"merchantApply"|"login"|"cart"|"checkout"|"search"|"service"|"homeRoute"|"addresses"|"partner";
 export type MainTab = "home"|"discover"|"scan"|"messages"|"profile";
@@ -35,7 +35,7 @@ export const services:ServiceItem[]=[
 {name:"闪兑",icon:ArrowLeftRight,tone:"bg-[#e7eef0] text-[#648890]"},
 {name:"更多",icon:MoreHorizontal,tone:"bg-[#edf0f2] text-[#7c8992]"}];
 export const discoverTabs=["关注","广场","本地","好物","美食","生活"];
-export const messageTypes:any[]=[];
+export const messageTypes=[{title:"系统通知",icon:BellRing,tone:"bg-[#e3edf3] text-[#6e879d]"},{title:"优惠促销",icon:TicketPercent,tone:"bg-[#f5e5df] text-[#c47e6f]"},{title:"互动消息",icon:MessageCircle,tone:"bg-[#e9e6ef] text-[#88799b]"}];
 export const catalogProducts:ProductData[]=[
 {id:"demo-food-1",title:"仰光精选双人餐 · 招牌主食与饮品",subtitle:"本地热门套餐",price:28500,original:34000,rating:"4.8",distance:"1.2km",sales:"月售 268",tags:["到店可用","本地热门"],store:"Golden Yangon Kitchen",imageLabel:"美食套餐图片"},
 {id:"demo-market-1",title:"进口水果礼盒 · 新鲜配送到家",subtitle:"当日优选",price:42000,original:48000,rating:"4.7",distance:"2.6km",sales:"月售 136",tags:["新鲜","可配送"],store:"Katu Fresh",imageLabel:"水果礼盒图片"},
