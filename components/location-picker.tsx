@@ -259,7 +259,7 @@ export function LocationPicker({
         setMessage("检测到刚刚复制的地图链接，正在自动解析…");
         void resolveManualLink(copied);
       }).catch(() => undefined);
-    };;
+    };
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
