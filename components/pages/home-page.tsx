@@ -50,7 +50,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const autoLocate = () => setLocationPickerOpen(true);
 
   const applyLocation = (result: LocationPickerResult) => {
-    chooseRegion(result.label);
+    chooseRegion(result.primaryLabel || result.label);
     setLocationPickerOpen(false);
     setRegionOpen(false);
   };

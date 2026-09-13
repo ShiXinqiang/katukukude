@@ -138,6 +138,8 @@ export async function GET(request: Request) {
     const endpoint = new URL("https://nominatim.openstreetmap.org/reverse");
     endpoint.searchParams.set("format", "jsonv2");
     endpoint.searchParams.set("addressdetails", "1");
+    endpoint.searchParams.set("namedetails", "1");
+    endpoint.searchParams.set("extratags", "1");
     endpoint.searchParams.set("zoom", "18");
     endpoint.searchParams.set("lat", String(lat));
     endpoint.searchParams.set("lon", String(lon));
@@ -162,27 +164,52 @@ export async function GET(request: Request) {
     const township = formatTownship(townshipRaw);
     const city = formatCity(address.city || address.town || address.municipality);
     const district = readable(address.state_district || address.district);
-    const village = clean(address.village || address.hamlet || address.suburb || address.neighbourhood);
+    const village = clean(address.village);
     const suburb = clean(address.suburb);
     const neighbourhood = clean(address.neighbourhood);
     const quarter = clean(address.quarter);
     const hamlet = clean(address.hamlet);
+    const residential = clean(address.residential);
+    const locality = clean(address.locality);
+    const isolatedDwelling = clean(address.isolated_dwelling);
+    const cityDistrict = clean(address.city_district);
+    const county = clean(address.county);
     const road = clean(address.road);
     const houseNumber = clean(address.house_number);
     const postcode = clean(address.postcode);
     const street = [road, houseNumber].filter(Boolean).join(" ");
 
+    const primaryLabel =
+      neighbourhood ||
+      quarter ||
+      residential ||
+      suburb ||
+      village ||
+      locality ||
+      hamlet ||
+      isolatedDwelling ||
+      road ||
+      city ||
+      township ||
+      state ||
+      "当前位置";
+
     const detailedParts = uniqueParts([
       state,
       autonomous,
       district,
+      county,
       township,
       city,
+      cityDistrict,
       village,
       suburb,
-      neighbourhood,
+      residential,
       quarter,
+      neighbourhood,
+      locality,
       hamlet,
+      isolatedDwelling,
       road,
       houseNumber,
       postcode
@@ -195,7 +222,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       label,
+      primaryLabel,
       detail: label,
+      displayName: data.display_name || label,
       state,
       autonomous,
       district,

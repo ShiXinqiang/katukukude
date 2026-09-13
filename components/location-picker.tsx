@@ -12,6 +12,7 @@ import {
 
 export type LocationPickerResult = {
   label: string;
+  primaryLabel?: string;
   detail: string;
   mapLink: string;
   latitude: string;
@@ -20,6 +21,7 @@ export type LocationPickerResult = {
 
 type ReverseResponse = {
   label?: string;
+  primaryLabel?: string;
   detail?: string;
 };
 
@@ -152,6 +154,7 @@ export function LocationPicker({
 
       onApply({
         label: reverse.label || fallback,
+        primaryLabel: reverse.primaryLabel,
         detail: reverse.detail || fallback,
         mapLink: createMapLink(latitude, longitude),
         latitude: String(latitude),
@@ -210,6 +213,7 @@ export function LocationPicker({
 
       onApply({
         label: reverse.label || fallback,
+        primaryLabel: reverse.primaryLabel,
         detail: reverse.detail || fallback,
         mapLink: resolved.mapLink || createMapLink(latitude, longitude),
         latitude: String(latitude),
