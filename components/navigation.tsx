@@ -25,7 +25,7 @@ export function BottomNav({
   ];
 
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 flex h-[72px] w-full max-w-[390px] -translate-x-1/2 items-end justify-around border-t border-slate-100 bg-white/95 px-2 pb-2 pt-2 shadow-[0_-6px_24px_rgba(90,105,120,0.08)] backdrop-blur">
+    <nav className="katu-floating-nav fixed left-1/2 z-40 flex max-w-[370px] -translate-x-1/2 items-end justify-around px-2 pb-2 pt-2">
       {tabs.map(({ view, label, icon: Icon }) => {
         const active = activeView === view;
 
@@ -37,7 +37,7 @@ export function BottomNav({
               onClick={() => onNavigate("scan")}
               className="flex min-w-[60px] flex-col items-center gap-1 text-[10px] text-slate-500"
             >
-              <span className="-mt-8 flex size-[58px] items-center justify-center rounded-full bg-[#7189a1] text-white shadow-[0_8px_18px_rgba(94,116,139,0.3)] ring-4 ring-[#f4f6f8]">
+              <span className="katu-floating-button -mt-8 flex size-[58px] items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-[#8199ae] to-[#5e7891] text-white ring-4 ring-white/65 backdrop-blur-xl">
                 <Icon size={25} strokeWidth={1.8} />
               </span>
               <span>扫一扫</span>
