@@ -229,7 +229,8 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   backdrop-filter: blur(26px) saturate(145%);
 }
 :root[data-katu-theme] .katu-app-shell :where(button,a)[class*="rounded"]:not(.katu-primary):not([class*="bg-red"]):not([class*="bg-rose"]),
-:root[data-katu-theme] .katu-app-shell :where(input,textarea,select) {
+:root[data-katu-theme] .katu-app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+:root[data-katu-theme] .katu-app-shell :where(textarea,select) {
   background: var(--katu-control) !important;
   border-color: var(--katu-border) !important;
   color: rgb(var(--katu-text));
@@ -253,23 +254,85 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
 .katu-app-shell :where(button,input,textarea,select) {
   font-family: "Noto Sans Myanmar","Pyidaungsu","Myanmar Text","Padauk","Noto Sans","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
 }
-.katu-app-shell :where(input,textarea,select) {
-  min-height: 44px;
+.katu-app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+.katu-app-shell :where(textarea,select) {
+  min-height: 46px;
   font-size: 16px !important;
   line-height: 1.5;
-  border-radius: 16px;
+  border: 1px solid var(--katu-border) !important;
+  border-radius: 15px;
+  padding: 11px 13px;
   touch-action: manipulation;
-  -webkit-appearance: none;
-  appearance: none;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+  transition: border-color .14s ease,box-shadow .14s ease,background-color .14s ease;
 }
-.katu-app-shell textarea { min-height: 96px; resize: vertical; }
-.katu-app-shell :where(input,textarea,select):focus {
+.katu-app-shell select { -webkit-appearance: auto; appearance: auto; padding-right: 30px; }
+.katu-app-shell textarea { min-height: 104px; resize: vertical; }
+.katu-app-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):focus,
+.katu-app-shell :where(textarea,select):focus {
   outline: none;
-  border-color: rgba(var(--katu-accent),.42) !important;
-  box-shadow: 0 0 0 4px rgba(var(--katu-accent),.10) !important;
+  border-color: rgba(var(--katu-accent),.46) !important;
+  box-shadow: 0 0 0 3px rgba(var(--katu-accent),.11) !important;
 }
 .katu-app-shell :where(input,textarea)::placeholder { color: rgb(var(--katu-muted)); opacity: .72; }
+.katu-app-shell :where(input[type="checkbox"],input[type="radio"]) {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border-radius: 4px;
+  background: transparent !important;
+  box-shadow: none !important;
+  accent-color: rgb(var(--katu-accent));
+  -webkit-appearance: auto;
+  appearance: auto;
+}
 .katu-app-shell button { touch-action: manipulation; }
 .katu-app-shell { -webkit-overflow-scrolling: touch; }
+
+
+/* 深黑主题完整收口：清除子页面遗留的大白底与不一致控件 */
+:root[data-katu-theme="dark"] .katu-app-shell :where(
+  [class~="bg-white"],
+  [class~="bg-white/95"],
+  [class~="bg-white/90"],
+  [class~="bg-white/80"],
+  [class~="bg-white/70"],
+  [class~="bg-white/65"],
+  [class~="bg-white/60"],
+  [class~="bg-white/50"],
+  [class~="bg-white/45"],
+  [class~="bg-[#f5f7f9]"],
+  [class~="bg-[#f4f6f8]"],
+  [class~="bg-[#f4f7f8]"],
+  [class~="bg-[#eef2f5]"],
+  [class~="bg-[#edf2f5]"],
+  [class~="bg-[#edf1f3]"],
+  [class~="bg-[#e8eef2]"],
+  [class~="bg-[#e7edf1]"]
+) {
+  background-color: rgba(255,255,255,.065) !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where([class*="from-white"],[class*="to-white"]) {
+  --tw-gradient-from: rgba(255,255,255,.10) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255,255,255,.025) var(--tw-gradient-to-position) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where(footer,[class*="fixed"])[class*="bg-white"] {
+  background-color: rgba(14,14,17,.88) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(135%);
+  backdrop-filter: blur(28px) saturate(135%);
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where(button,a)[class*="bg-slate"],
+:root[data-katu-theme="dark"] .katu-app-shell :where(button,a)[class*="bg-[#e"] {
+  background-color: rgba(255,255,255,.09) !important;
+  border-color: rgba(255,255,255,.13) !important;
+  color: rgb(235 235 240) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell :where(input,textarea,select) {
+  background-color: rgba(255,255,255,.075) !important;
+  border-color: rgba(255,255,255,.13) !important;
+}
+:root[data-katu-theme="light"] .katu-app-shell :where(input,textarea,select) {
+  background-color: rgba(255,255,255,.66) !important;
+  border-color: rgba(15,23,42,.09) !important;
+}
