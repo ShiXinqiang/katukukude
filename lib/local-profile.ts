@@ -30,8 +30,10 @@ export function saveRegion(value: string) {
 export function isGoogleMapsLink(value: string) {
   try {
     const url = new URL(value);
-    return /(^|\.)google\.(com|com\.mm)$/.test(url.hostname) ||
-      /(^|\.)maps\.google\./.test(url.hostname) ||
-      url.hostname === "goo.gl";
+    const hostname = url.hostname.toLowerCase();
+    return /(^|\.)google\.(com|com\.mm)$/.test(hostname) ||
+      /(^|\.)maps\.google\./.test(hostname) ||
+      hostname === "goo.gl" ||
+      hostname.endsWith(".goo.gl");
   } catch { return false; }
 }

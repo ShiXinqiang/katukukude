@@ -19,6 +19,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import { LocationPicker, type LocationPickerResult } from "../location-picker";
 import type {
   AuthUser,
   MerchantApplicationRecord,
@@ -84,7 +85,7 @@ export function MerchantApplyPage({
   const [application, setApplication] = useState<MerchantApplicationRecord | null>(null);
   const [documents, setDocuments] = useState<MerchantDocumentRecord[]>([]);
   const [picker, setPicker] = useState<"business" | "region" | "city" | null>(null);
-  const [locationGuide, setLocationGuide] = useState(false);
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(user));
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState("");
@@ -185,34 +186,15 @@ export function MerchantApplyPage({
     }
   };
 
-  const useCurrentLocation = () => {
-    setLocationGuide(false);
-    setMessage("正在请求位置授权…");
-    if (!navigator.geolocation) {
-      setMessage("当前浏览器不支持自动定位，请手动粘贴地图链接");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const latitude = coords.latitude.toFixed(7);
-        const longitude = coords.longitude.toFixed(7);
-        setForm((current) => ({
-          ...current,
-          locationLat: latitude,
-          locationLng: longitude,
-          mapLink: `https://www.google.com/maps?q=${latitude},${longitude}`,
-        }));
-        setMessage("当前位置已写入地图链接，请继续补充详细门牌地址");
-      },
-      () => setMessage("未获得位置权限，请允许定位或手动粘贴地图链接"),
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
-    );
-  };
-
-  const openGoogleMaps = () => {
-    window.open("https://www.google.com/maps", "_blank", "noopener,noreferrer");
-    setLocationGuide(false);
-    setMessage("请在地图中长按店铺位置，选择分享/复制链接，再粘贴到下方");
+  const applyLocation = (result: LocationPickerResult) => {
+    setForm((current) => ({
+      ...current,
+      mapLink: result.mapLink,
+      locationLat: result.latitude,
+      locationLng: result.longitude,
+    }));
+    setMessage("已读取地图位置：" + result.label + "。省邦、城市和镇区请按实际情况确认。");
+    setLocationPickerOpen(false);
   };
 
   const submit = async (event: FormEvent) => {
@@ -304,7 +286,7 @@ export function MerchantApplyPage({
               <Field label="镇区 Township *" value={form.township} onChange={(value) => update("township", value)} disabled={locked} maxLength={100} placeholder="自行填写镇区" />
               <Field label="详细营业地址 *" value={form.address} onChange={(value) => update("address", value)} disabled={locked} maxLength={1000} multiline placeholder="街道、路口、楼层、门牌及附近明显地标" />
               <div className="py-3">
-                <div className="flex items-center justify-between"><span className="text-xs text-slate-500">地图 / 导航链接（可选）</span>{!locked && <button type="button" onClick={() => setLocationGuide(true)} className="flex items-center gap-1 text-[11px] text-[#667f98]"><LocateFixed size={14} />自动填写</button>}</div>
+                <div className="flex items-center justify-between"><span className="text-xs text-slate-500">地图 / 导航链接（可选）</span>{!locked && <button type="button" onClick={() => setLocationPickerOpen(true)} className="flex items-center gap-1 text-[11px] text-[#667f98]"><LocateFixed size={14} />自动填写</button>}</div>
                 <input value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
                 {form.mapLink && <a href={form.mapLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#667f98]"><ExternalLink size={13} />打开当前导航链接</a>}
               </div>
@@ -326,7 +308,7 @@ export function MerchantApplyPage({
       </div>
 
       {picker && <PickerModal title={picker === "business" ? "选择经营类型" : picker === "region" ? "选择省邦 / 地区" : "选择城市"} options={picker === "business" ? businessTypes : picker === "region" ? Object.keys(locationOptions) : cities} selected={picker === "business" ? form.businessType : picker === "region" ? form.stateRegion : form.city} onClose={() => setPicker(null)} onSelect={(value) => { if (picker === "business") update("businessType", value); else if (picker === "region") setForm((current) => ({ ...current, stateRegion: value, city: "" })); else update("city", value); setPicker(null); }} />}
-      {locationGuide && <LocationGuide onClose={() => setLocationGuide(false)} onLocate={useCurrentLocation} onOpenMaps={openGoogleMaps} />}
+      {locationPickerOpen && <LocationPicker title="填写店铺地图位置" description="自动定位失败时，可从 Google 地图复制位置链接回来填写。" initialLink={form.mapLink} onClose={() => setLocationPickerOpen(false)} onApply={applyLocation} />}
     </main>
   );
 }

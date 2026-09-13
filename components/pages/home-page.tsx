@@ -10,6 +10,7 @@ import type { AuthUser, View } from "../../lib/data";
 import { catalogProducts, formatMoney, services } from "../../lib/data";
 import { readRegion, saveRegion } from "../../lib/local-profile";
 import { SectionHeader, SkeletonImage } from "../ui";
+import { LocationPicker, type LocationPickerResult } from "../location-picker";
 
 const regions = ["仰光 Yangon", "曼德勒 Mandalay", "内比都 Naypyidaw", "掸邦 Shan", "克钦邦 Kachin", "若开邦 Rakhine"];
 
@@ -25,7 +26,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const [searching, setSearching] = useState(false);
   const [region, setRegion] = useState("仰光 Yangon");
   const [regionOpen, setRegionOpen] = useState(false);
-  const [locating, setLocating] = useState(false);
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setRegion(readRegion()), []);
@@ -46,22 +47,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const chooseRegion = (value: string) => {
     setRegion(value); saveRegion(value); setRegionOpen(false);
   };
-  const autoLocate = () => {
-    if (!navigator.geolocation) return;
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      const fallback = "当前位置 · " + coords.latitude.toFixed(3) + ", " + coords.longitude.toFixed(3);
-      try {
-        const params = new URLSearchParams({ lat: String(coords.latitude), lon: String(coords.longitude) });
-        const response = await fetch("/api/location/reverse?" + params.toString(), { cache: "no-store" });
-        const result = response.ok ? await response.json() : null;
-        chooseRegion(result?.label || fallback);
-      } catch {
-        chooseRegion(fallback);
-      } finally {
-        setLocating(false);
-      }
-    }, () => setLocating(false), { enableHighAccuracy: true, timeout: 12000 });
+  const autoLocate = () => setLocationPickerOpen(true);
+
+  const applyLocation = (result: LocationPickerResult) => {
+    chooseRegion(result.label);
+    setLocationPickerOpen(false);
+    setRegionOpen(false);
   };
   const clickService = (name: string) => {
     if (name === "到家") return onNavigate("homeRoute");
@@ -175,17 +166,19 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         </div>
       </section>
 
+      {locationPickerOpen && <LocationPicker title="选择地区" description="自动定位失败时，可从 Google 地图复制位置链接回来填写。" onClose={() => setLocationPickerOpen(false)} onApply={applyLocation} />}
+
       {regionOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35" onClick={() => setRegionOpen(false)}>
           <section onClick={e=>e.stopPropagation()} className="w-full max-w-[390px] rounded-t-[28px] bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
             <div className="mx-auto h-1 w-10 rounded-full bg-slate-200"/>
             <div className="mt-5 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-800">选择地区</h2><button type="button" aria-label="关闭" onClick={()=>setRegionOpen(false)} className="flex size-9 items-center justify-center rounded-full bg-slate-100"><X size={18}/></button></div>
-            <button type="button" onClick={autoLocate} disabled={locating} className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-[#edf3f6] p-4 text-left text-[#607d96]">
+            <button type="button" onClick={autoLocate} className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-[#edf3f6] p-4 text-left text-[#607d96]">
               <span className="flex size-10 items-center justify-center rounded-full bg-white"><Navigation size={19}/></span>
-              <span><b className="block text-sm">{locating ? "正在获取位置…" : "自动获取当前位置"}</b><span className="mt-1 block text-[11px] text-slate-500">允许定位后自动选择附近地区</span></span>
+              <span><b className="block text-sm">"自动获取当前位置"</b><span className="mt-1 block text-[11px] text-slate-500">允许定位后自动选择附近地区</span></span>
             </button>
             <div className="mt-4 grid grid-cols-2 gap-2">{regions.map(item=><button type="button" key={item} onClick={()=>chooseRegion(item)} className={`rounded-xl border px-3 py-3 text-sm ${region===item?"border-[#7189a1] bg-[#edf2f5] text-[#607a92]":"border-slate-100 text-slate-600"}`}>{item}</button>)}</div>
-            <a href="https://www.google.com/maps" target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"><MapPin size={17}/>在 Google 地图中选择</a>
+            <button type="button" onClick={() => setLocationPickerOpen(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"><MapPin size={17}/>手动粘贴 Google 地图链接</button>
           </section>
         </div>
       )}
