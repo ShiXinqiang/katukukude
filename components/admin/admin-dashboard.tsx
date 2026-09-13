@@ -50,7 +50,7 @@ type AdminMerchant = {
 
 type AdminProduct = {
   id: string; title: string; description: string; category: string;
-  price: string; stock: number; status: "draft" | "active" | "archived";
+  price: string; originalPrice: string|null; stock: number; status: "draft"|"pending"|"active"|"rejected"|"archived"; badge:string|null; promotionTitle:string|null; isOfficial:boolean; isFeatured:boolean; isRecommended:boolean; sortOrder:number; rejectionReason:string|null;
   createdAt: string; updatedAt: string; merchantId: string; storeNameCn: string;
 };
 
@@ -394,14 +394,14 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
     finally { setLoading(null); }
   };
 
-  const changeProductStatus = async (product: AdminProduct, status: AdminProduct["status"]) => {
+  const changeProductStatus = async (product: AdminProduct, changes: Record<string, unknown>) => {
     setLoading(`product-${product.id}`); setError("");
     try {
       await requestJson(`/api/admin/products/${product.id}`, {
         method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(changes),
       });
-      setNotice("商品状态已更新");
+      setNotice("商品审核或运营配置已更新");
       await loadAdminProducts();
     } catch (requestError) { setError(getErrorMessage(requestError)); }
     finally { setLoading(null); }
@@ -675,7 +675,7 @@ export function AdminDashboard({ admin }: { admin: AuthUser }) {
                 products={adminProducts}
                 loading={loading === "products"}
                 actionLoading={loading}
-                onStatus={(product, status) => void changeProductStatus(product, status)}
+                onUpdate={(product, changes) => void changeProductStatus(product, changes)}
                 onDelete={(product) =>
                   setConfirmDialog({
                     title: "删除全站商品",
@@ -1457,16 +1457,14 @@ function AdminMerchantsPanel({
   return <section><PanelIntro title="全站商家管理" description="超级管理员可暂停、恢复、关闭或删除任意商家。" icon={ShieldCheck} /><div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm">{loading ? <TableSkeleton rows={5} /> : merchants.length === 0 ? <EmptyPanel title="暂无认证商家" description="审核通过的商家会显示在这里。" /> : <div className="divide-y divide-slate-100">{merchants.map((merchant) => <div key={merchant.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#e8eef2] text-[#667f98]"><Store size={21} /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{merchant.storeNameCn}</p><span className={`rounded-full px-2 py-0.5 text-[10px] ${merchant.status === "active" ? "bg-[#edf4ef] text-[#5f816e]" : "bg-[#fff0ed] text-[#b96158]"}`}>{merchant.status === "active" ? "营业中" : merchant.status === "suspended" ? "已暂停" : "已关闭"}</span></div><p className="mt-1 text-xs text-slate-400">{merchant.username} · {merchant.phone} · {merchant.city}/{merchant.township}</p><p className="mt-1 text-[11px] text-slate-400">{merchant.productCount} 个商品 · {merchant.orderCount} 笔订单</p></div><div className="flex flex-wrap gap-2">{merchant.status !== "active" && <button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "active")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">恢复</button>}{merchant.status === "active" && <button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "suspended")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">暂停后台</button>}<button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onStatus(merchant, "closed")} className="rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]">关闭</button><button type="button" disabled={actionLoading === `merchant-${merchant.id}`} onClick={() => onDelete(merchant)} className="flex items-center gap-1 rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]"><Trash2 size={12} />删除</button></div></div></div>)}</div>}</div></section>;
 }
 
-function AdminProductsPanel({
-  products, loading, actionLoading, onStatus, onDelete,
-}: {
-  products: AdminProduct[];
-  loading: boolean;
-  actionLoading: string | null;
-  onStatus: (product: AdminProduct, status: AdminProduct["status"]) => void;
-  onDelete: (product: AdminProduct) => void;
-}) {
-  return <section><PanelIntro title="全站商品管理" description="超级管理员可以审核、强制下架、恢复或删除所有商家商品。" icon={PackageSearch} /><div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm">{loading ? <TableSkeleton rows={6} /> : products.length === 0 ? <EmptyPanel title="暂无商品" description="商家发布的商品会显示在这里。" /> : <div className="divide-y divide-slate-100">{products.map((product) => <div key={product.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#edf2f5] text-[#667f98]"><PackageSearch size={20} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{product.title}</p><p className="mt-1 text-xs text-slate-400">{product.storeNameCn} · {product.category} · 库存 {product.stock}</p><p className="mt-1 text-sm font-bold text-[#b47763]">Ks {Number(product.price).toLocaleString("zh-CN")}</p></div><span className="text-xs text-slate-400">{product.status === "active" ? "销售中" : product.status === "draft" ? "草稿" : "已下架"}</span><div className="flex gap-2">{product.status !== "active" && <button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onStatus(product, "active")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">恢复上架</button>}{product.status === "active" && <button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onStatus(product, "archived")} className="rounded-full border border-slate-200 px-3 py-1.5 text-xs text-slate-500">强制下架</button>}<button type="button" disabled={actionLoading === `product-${product.id}`} onClick={() => onDelete(product)} className="flex items-center gap-1 rounded-full border border-[#efd9d4] px-3 py-1.5 text-xs text-[#b96158]"><Trash2 size={12} />删除</button></div></div>)}</div>}</div></section>;
+function AdminProductsPanel({products,loading,actionLoading,onUpdate,onDelete}:{products:AdminProduct[];loading:boolean;actionLoading:string|null;onUpdate:(product:AdminProduct,changes:Record<string,unknown>)=>void;onDelete:(product:AdminProduct)=>void}){
+ const [editing,setEditing]=useState<AdminProduct|null>(null);
+ const labels:Record<string,string>={draft:"草稿",pending:"待审核",active:"销售中",rejected:"已拒绝",archived:"已下架"};
+ return <section><PanelIntro title="全站商品管理" description="审核商家商品，并配置首页官方、热门推荐、猜你喜欢、优惠标签和排序。" icon={PackageSearch}/><div className="mt-5 overflow-hidden rounded-2xl bg-white shadow-sm">{loading?<TableSkeleton rows={6}/>:products.length===0?<EmptyPanel title="暂无商品" description="商家提交审核的商品会显示在这里。"/>:<div className="divide-y divide-slate-100">{products.map(p=><div key={p.id} className="p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center"><span className="flex size-11 items-center justify-center rounded-xl bg-[#edf2f5] text-[#667f98]"><PackageSearch size={20}/></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{p.title}</p><p className="mt-1 text-xs text-slate-400">{p.storeNameCn} · {p.category} · 库存 {p.stock}</p><div className="mt-2 flex flex-wrap gap-1">{p.isOfficial&&<span className="rounded bg-[#e8eef2] px-2 py-1 text-[10px] text-[#607992]">官方</span>}{p.isFeatured&&<span className="rounded bg-[#fff0e8] px-2 py-1 text-[10px] text-[#aa7259]">热门推荐</span>}{p.isRecommended&&<span className="rounded bg-[#edf4ef] px-2 py-1 text-[10px] text-[#5f816e]">猜你喜欢</span>}{p.badge&&<span className="rounded bg-slate-100 px-2 py-1 text-[10px]">{p.badge}</span>}</div></div><b className="text-sm text-[#b47763]">Ks {Number(p.price).toLocaleString("zh-CN")}</b><span className="text-xs text-slate-400">{labels[p.status]}</span><div className="flex flex-wrap gap-2">{p.status==="pending"&&<><button disabled={actionLoading===`product-${p.id}`} onClick={()=>onUpdate(p,{status:"active"})} className="rounded-full bg-[#7189a1] px-3 py-2 text-xs text-white">审核通过</button><button onClick={()=>{const reason=window.prompt("请输入拒绝原因");if(reason)onUpdate(p,{status:"rejected",rejectionReason:reason})}} className="rounded-full border border-[#efd9d4] px-3 py-2 text-xs text-[#b96158]">拒绝</button></>}{p.status==="active"&&<button onClick={()=>onUpdate(p,{status:"archived"})} className="rounded-full border px-3 py-2 text-xs">下架</button>}<button onClick={()=>setEditing(p)} className="rounded-full border px-3 py-2 text-xs">运营配置</button><button onClick={()=>onDelete(p)} className="rounded-full border border-[#efd9d4] px-3 py-2 text-xs text-[#b96158]">删除</button></div></div>{p.rejectionReason&&<p className="mt-3 rounded-xl bg-red-50 p-3 text-xs text-red-600">拒绝原因：{p.rejectionReason}</p>}</div>)}</div>}</div>{editing&&<ProductOpsModal product={editing} onClose={()=>setEditing(null)} onSave={changes=>{onUpdate(editing,changes);setEditing(null)}}/>}</section>
+}
+function ProductOpsModal({product,onClose,onSave}:{product:AdminProduct;onClose:()=>void;onSave:(changes:Record<string,unknown>)=>void}){
+ const [form,setForm]=useState({badge:product.badge||"",promotionTitle:product.promotionTitle||"",sortOrder:String(product.sortOrder||0),isOfficial:product.isOfficial,isFeatured:product.isFeatured,isRecommended:product.isRecommended});
+ return <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3 sm:items-center"><div className="w-full max-w-md rounded-3xl bg-white p-5"><div className="flex justify-between"><div><h3 className="font-bold">商品运营配置</h3><p className="mt-1 text-xs text-slate-400">{product.title}</p></div><button onClick={onClose}><X size={18}/></button></div><div className="mt-5 space-y-3"><label className="block text-xs text-slate-500">角标<input value={form.badge} onChange={e=>setForm({...form,badge:e.target.value})} placeholder="如：限时优惠、新品" className="mt-1 w-full rounded-xl bg-slate-100 p-3"/></label><label className="block text-xs text-slate-500">优惠文案<input value={form.promotionTitle} onChange={e=>setForm({...form,promotionTitle:e.target.value})} placeholder="如：满50000减5000" className="mt-1 w-full rounded-xl bg-slate-100 p-3"/></label><label className="block text-xs text-slate-500">首页排序<input type="number" value={form.sortOrder} onChange={e=>setForm({...form,sortOrder:e.target.value})} className="mt-1 w-full rounded-xl bg-slate-100 p-3"/></label>{[["isOfficial","官方认证"],["isFeatured","热门推荐"],["isRecommended","猜你喜欢"]].map(([key,label])=><label key={key} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm"><span>{label}</span><input type="checkbox" checked={form[key as keyof typeof form] as boolean} onChange={e=>setForm({...form,[key]:e.target.checked})}/></label>)}</div><button onClick={()=>onSave({...form,sortOrder:Number(form.sortOrder)})} className="mt-5 h-11 w-full rounded-full bg-[#7189a1] text-sm font-semibold text-white">保存配置</button></div></div>
 }
 
 function ReviewApplicationModal({
