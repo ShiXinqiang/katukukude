@@ -68,6 +68,28 @@ export async function ensureAuthSchema() {
       ADD COLUMN IF NOT EXISTS status VARCHAR(16) NOT NULL DEFAULT 'active',
       ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
+    DO $migration$
+    BEGIN
+      IF EXISTS (
+        SELECT 1 FROM pg_constraint
+         WHERE conrelid = 'users'::regclass
+           AND conname = 'users_role_check'
+           AND pg_get_constraintdef(oid) NOT ILIKE '%merchant%'
+      ) THEN
+        ALTER TABLE users DROP CONSTRAINT users_role_check;
+      END IF;
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+         WHERE conrelid = 'users'::regclass
+           AND conname = 'users_role_check'
+      ) THEN
+        ALTER TABLE users
+          ADD CONSTRAINT users_role_check
+          CHECK (role IN ('user','merchant','admin'));
+      END IF;
+    END
+    $migration$;
+
     CREATE TABLE IF NOT EXISTS sessions (
       token_hash TEXT PRIMARY KEY,
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
