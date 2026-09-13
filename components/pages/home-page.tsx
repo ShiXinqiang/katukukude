@@ -110,8 +110,8 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         </div>
       </section>
 
-      <section className={`mt-4 grid gap-3 px-4 ${user?.role === "merchant" ? "grid-cols-1" : "grid-cols-2"}`}>
-        {user?.role !== "merchant" && (
+      <section className={`mt-4 grid gap-3 px-4 ${user?.role === "user" || !user ? "grid-cols-2" : "grid-cols-1"}`}>
+        {(!user || user.role === "user") && (
           <button type="button" onClick={() => onNavigate("merchantApply")}
             className="relative min-h-[116px] overflow-hidden rounded-3xl bg-[#e7eef3] p-4 text-left active:scale-[.98]">
             <div className="absolute -right-5 -top-5 size-24 rounded-full bg-white/45" />
