@@ -1,60 +1,12 @@
-import { NextResponse } from "next/server";
-import { cleanText, createCommerceId, ensureMerchantSchema, isMerchantRequiredError, requireMerchant } from "../../../../lib/merchant";
-import type { MerchantProductRecord } from "../../../../lib/data";
-
-export const dynamic = "force-dynamic";
-
-function serialize(row: MerchantProductRecord) {
-  return {
-    ...row,
-    images: Array.isArray(row.images) ? row.images : [],
-    createdAt: new Date(row.createdAt).toISOString(),
-    updatedAt: new Date(row.updatedAt).toISOString(),
-  };
-}
-
-export async function GET() {
-  try {
-    const { merchant } = await requireMerchant();
-    const database = await ensureMerchantSchema();
-    const result = await database.query<MerchantProductRecord>(
-      `SELECT id, title, description, category, price::text, stock, status,
-              images, created_at AS "createdAt", updated_at AS "updatedAt"
-         FROM products WHERE merchant_id = $1 ORDER BY created_at DESC LIMIT 200`,
-      [merchant.id],
-    );
-    return NextResponse.json({ products: result.rows.map(serialize) });
-  } catch (error) {
-    if (isMerchantRequiredError(error)) return NextResponse.json({ message: "需要商家权限" }, { status: 403 });
-    return NextResponse.json({ message: "商品加载失败" }, { status: 500 });
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const { merchant } = await requireMerchant();
-    const body = (await request.json()) as Record<string, unknown>;
-    const title = cleanText(body.title, 200);
-    const description = cleanText(body.description, 3000);
-    const category = cleanText(body.category, 80);
-    const price = Number(body.price);
-    const stock = Number(body.stock);
-    const status = body.status === "active" ? "active" : "draft";
-    if (!title || !description || !category || !Number.isFinite(price) || price < 0 || !Number.isInteger(stock) || stock < 0) {
-      return NextResponse.json({ message: "请完整填写有效的商品信息" }, { status: 400 });
-    }
-    const database = await ensureMerchantSchema();
-    const result = await database.query<MerchantProductRecord>(
-      `INSERT INTO products (id, merchant_id, title, description, category, price, stock, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-       RETURNING id, title, description, category, price::text, stock, status,
-                 images, created_at AS "createdAt", updated_at AS "updatedAt"`,
-      [createCommerceId(), merchant.id, title, description, category, price, stock, status],
-    );
-    return NextResponse.json({ product: serialize(result.rows[0]) }, { status: 201 });
-  } catch (error) {
-    if (isMerchantRequiredError(error)) return NextResponse.json({ message: "需要商家权限" }, { status: 403 });
-    console.error("Merchant product create failed", error);
-    return NextResponse.json({ message: "商品创建失败" }, { status: 500 });
-  }
-}
+import {NextResponse} from "next/server";
+import {cleanText,createCommerceId,ensureMerchantSchema,isMerchantRequiredError,requireMerchant} from "../../../../lib/merchant";
+export const dynamic="force-dynamic";
+const arr=(v:unknown,max=12)=>Array.isArray(v)?v.filter(x=>typeof x==="string").map(x=>cleanText(x,80)).filter(Boolean).slice(0,max):[];
+const specs=(v:unknown)=>Array.isArray(v)?v.slice(0,8).map(x=>{const o=x&&typeof x==="object"?x as Record<string,unknown>:{};return{name:cleanText(o.name,40),values:arr(o.values,20)}}).filter(x=>x.name&&x.values.length):[];
+const serialize=(r:any)=>({...r,images:Array.isArray(r.images)?r.images:[],tags:Array.isArray(r.tags)?r.tags:[],specifications:Array.isArray(r.specifications)?r.specifications:[],serviceGuarantees:Array.isArray(r.serviceGuarantees)?r.serviceGuarantees:[],createdAt:new Date(r.createdAt).toISOString(),updatedAt:new Date(r.updatedAt).toISOString()});
+const fields=`id,title,subtitle,description,category,price::text,original_price::text AS "originalPrice",stock,status,images,badge,tags,specifications,shipping_fee::text AS "shippingFee",free_shipping AS "freeShipping",service_guarantees AS "serviceGuarantees",promotion_title AS "promotionTitle",rejection_reason AS "rejectionReason",is_official AS "isOfficial",is_featured AS "isFeatured",is_recommended AS "isRecommended",sort_order AS "sortOrder",sales_count AS "salesCount",rating_average::text AS "ratingAverage",rating_count AS "ratingCount",created_at AS "createdAt",updated_at AS "updatedAt"`;
+export async function GET(){try{const{merchant}=await requireMerchant();const db=await ensureMerchantSchema();const r=await db.query(`SELECT ${fields} FROM products WHERE merchant_id=$1 ORDER BY created_at DESC LIMIT 200`,[merchant.id]);return NextResponse.json({products:r.rows.map(serialize)})}catch(e){if(isMerchantRequiredError(e))return NextResponse.json({message:"需要商家权限"},{status:403});return NextResponse.json({message:"商品加载失败"},{status:500})}}
+export async function POST(request:Request){try{const{merchant}=await requireMerchant();const b=await request.json() as Record<string,unknown>;const title=cleanText(b.title,200),subtitle=cleanText(b.subtitle,160),description=cleanText(b.description,5000),category=cleanText(b.category,80),price=Number(b.price),originalPrice=b.originalPrice?Number(b.originalPrice):null,stock=Number(b.stock),shippingFee=Number(b.shippingFee||0),publish=b.publish===true;
+if(title.length<4||description.length<10||!category||!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0||!Number.isFinite(shippingFee)||shippingFee<0||originalPrice!==null&&(!Number.isFinite(originalPrice)||originalPrice<price))return NextResponse.json({message:"请完整填写有效商品资料，原价不能低于现价"},{status:400});
+const db=await ensureMerchantSchema(),id=createCommerceId();const r=await db.query(`INSERT INTO products(id,merchant_id,title,subtitle,description,category,price,original_price,stock,status,images,tags,specifications,shipping_fee,free_shipping,service_guarantees) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12::jsonb,$13::jsonb,$14,$15,$16::jsonb) RETURNING ${fields}`,[id,merchant.id,title,subtitle||null,description,category,price,originalPrice,stock,publish?"pending":"draft",JSON.stringify(arr(b.images,8)),JSON.stringify(arr(b.tags,8)),JSON.stringify(specs(b.specifications)),shippingFee,b.freeShipping===true,JSON.stringify(arr(b.serviceGuarantees,8))]);return NextResponse.json({product:serialize(r.rows[0])},{status:201})
+}catch(e){if(isMerchantRequiredError(e))return NextResponse.json({message:"需要商家权限"},{status:403});console.error(e);return NextResponse.json({message:"商品创建失败"},{status:500})}}
