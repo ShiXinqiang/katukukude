@@ -88,6 +88,7 @@ export function MerchantApplyPage({
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(user));
   const [submitting, setSubmitting] = useState(false);
+  const [recognizingAddress, setRecognizingAddress] = useState(false);
   const [uploading, setUploading] = useState("");
   const [message, setMessage] = useState("");
 
@@ -189,12 +190,51 @@ export function MerchantApplyPage({
   const applyLocation = (result: LocationPickerResult) => {
     setForm((current) => ({
       ...current,
+      stateRegion: result.state || current.stateRegion,
+      city: result.city || current.city,
+      township: result.township || current.township,
+      address: result.detail || current.address,
       mapLink: result.mapLink,
       locationLat: result.latitude,
       locationLng: result.longitude,
     }));
     setMessage("已读取地图位置：" + result.label + "。省邦、城市和镇区请按实际情况确认。");
     setLocationPickerOpen(false);
+  };
+
+  const recognizeTypedAddress = async () => {
+    const query = form.address.trim();
+    if (query.length < 3) {
+      setMessage("请先在地址输入框填写省邦、城市、镇区、村寨、街道或附近地标");
+      return;
+    }
+    setRecognizingAddress(true);
+    setMessage("正在识别地址并生成详细信息…");
+    try {
+      const searchResponse = await fetch("/api/location/search?q=" + encodeURIComponent(query), { cache: "no-store" });
+      const found = await searchResponse.json() as { latitude?: number; longitude?: number; mapLink?: string; message?: string };
+      if (!searchResponse.ok || !Number.isFinite(found.latitude) || !Number.isFinite(found.longitude)) {
+        throw new Error(found.message || "没有识别到该地址");
+      }
+      const reverseResponse = await fetch(`/api/location/reverse?lat=${found.latitude}&lon=${found.longitude}`, { cache: "no-store" });
+      const detail = await reverseResponse.json() as { state?: string; city?: string; township?: string; detail?: string; label?: string };
+      if (!reverseResponse.ok) throw new Error("已找到位置，但详细地址读取失败");
+      setForm(current => ({
+        ...current,
+        stateRegion: detail.state || current.stateRegion,
+        city: detail.city || current.city,
+        township: detail.township || current.township,
+        address: detail.detail || detail.label || query,
+        mapLink: found.mapLink || current.mapLink,
+        locationLat: String(found.latitude),
+        locationLng: String(found.longitude),
+      }));
+      setMessage("地址已识别并填入下方，请检查，不准确的内容可以直接修改。");
+    } catch (error) {
+      setMessage(getMessage(error));
+    } finally {
+      setRecognizingAddress(false);
+    }
   };
 
   const submit = async (event: FormEvent) => {
@@ -280,11 +320,16 @@ export function MerchantApplyPage({
               <Field label="微信号（可选）" value={form.wechatAccount} onChange={(value) => update("wechatAccount", value)} disabled={locked} maxLength={100} />
             </FormCard>
 
-            <FormCard title="营业地址" subtitle="地址越详细，审核和顾客导航越准确">
-              <PickerRow label="省邦 / 地区 *" value={form.stateRegion} placeholder="请选择省邦" onClick={() => setPicker("region")} disabled={locked} />
-              <PickerRow label="城市 *" value={form.city} placeholder={form.stateRegion ? "请选择城市" : "请先选择省邦"} onClick={() => form.stateRegion && setPicker("city")} disabled={locked || !form.stateRegion} />
-              <Field label="镇区 Township *" value={form.township} onChange={(value) => update("township", value)} disabled={locked} maxLength={100} placeholder="自行填写镇区" />
-              <Field label="详细营业地址 *" value={form.address} onChange={(value) => update("address", value)} disabled={locked} maxLength={1000} multiline placeholder="街道、路口、楼层、门牌及附近明显地标" />
+            <FormCard title="营业地址" subtitle="可输入地址识别，也可从 Google Maps 复制位置">
+              <div className="py-3">
+                <label className="text-xs text-slate-500">输入完整地址或附近地标 *</label>
+                <textarea value={form.address} onChange={(event) => update("address", event.target.value)} disabled={locked} rows={3} maxLength={1000} placeholder="例如：掸邦、南桑县、孟乃镇区、村寨、社区、街道门牌或附近商店名称" className="katu-field mt-2 w-full resize-none bg-transparent text-sm leading-6 text-slate-700 outline-none placeholder:text-slate-300" />
+                {!locked && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={recognizingAddress} onClick={() => void recognizeTypedAddress()} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7189a1] text-xs font-semibold text-white disabled:opacity-50">{recognizingAddress ? <Loader2 size={15} className="animate-spin" /> : <LocateFixed size={15} />}识别详细地址</button><button type="button" onClick={() => setLocationPickerOpen(true)} className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"><MapPin size={15} />从地图选择</button></div>}
+                <p className="mt-2 text-[10px] leading-4 text-slate-400">识别后会自动填写下面的省邦、城市、镇区和导航链接，所有内容都可以自行修改。</p>
+              </div>
+              <Field label="省邦 / 地区 *" value={form.stateRegion} onChange={(value) => update("stateRegion", value)} disabled={locked} maxLength={100} placeholder="识别后自动填写，也可手动修改" />
+              <Field label="城市 / 县 *" value={form.city} onChange={(value) => update("city", value)} disabled={locked} maxLength={100} placeholder="识别后自动填写，也可手动修改" />
+              <Field label="镇区 Township *" value={form.township} onChange={(value) => update("township", value)} disabled={locked} maxLength={100} placeholder="识别后自动填写，也可手动修改" />
               <div className="py-3">
                 <div className="flex items-center justify-between"><span className="text-xs text-slate-500">地图 / 导航链接（可选）</span>{!locked && <button type="button" onClick={() => setLocationPickerOpen(true)} className="flex items-center gap-1 text-[11px] text-[#667f98]"><LocateFixed size={14} />自动填写</button>}</div>
                 <input value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="katu-field mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
