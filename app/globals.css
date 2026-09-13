@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -19,9 +21,10 @@ body {
   min-width: 320px;
   background: #dfe6ec;
   color: #334155;
-  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "Noto Sans Myanmar", "Pyidaungsu", "Myanmar Text", "Padauk", "Noto Sans", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-kerning: normal;
 }
 
 button,

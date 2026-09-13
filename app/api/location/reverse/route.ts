@@ -141,7 +141,7 @@ export async function GET(request: Request) {
     endpoint.searchParams.set("zoom", "18");
     endpoint.searchParams.set("lat", String(lat));
     endpoint.searchParams.set("lon", String(lon));
-    endpoint.searchParams.set("accept-language", "zh-CN,en");
+    endpoint.searchParams.set("accept-language", "zh-CN,my,en");
 
     const response = await fetch(endpoint, {
       cache: "no-store",
