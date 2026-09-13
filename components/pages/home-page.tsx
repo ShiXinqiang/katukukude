@@ -9,7 +9,7 @@ import {
 import type { AuthUser, View } from "../../lib/data";
 import type { ProductData } from "../../lib/data";
 import { formatMoney, services } from "../../lib/data";
-import { readRegion, saveRegion } from "../../lib/local-profile";
+import { readCurrentLocation, readRegion, saveCurrentLocation, saveRegion, type SavedCurrentLocation } from "../../lib/local-profile";
 import { SectionHeader, SkeletonImage } from "../ui";
 import { LocationPicker, type LocationPickerResult } from "../location-picker";
 
@@ -27,12 +27,13 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const [searching, setSearching] = useState(false);
   const [region, setRegion] = useState("仰光 Yangon");
   const [regionOpen, setRegionOpen] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<SavedCurrentLocation | null>(null);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
   const [products, setProducts] = useState<ProductData[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setRegion(readRegion()), []);
+  useEffect(() => { setRegion(readRegion()); setCurrentLocation(readCurrentLocation()); }, []);
   useEffect(() => { let active=true; fetch("/api/catalog",{cache:"no-store"}).then(r=>r.json()).then(data=>{if(active)setProducts(data.products||[])}).catch(()=>active&&setProducts([])).finally(()=>active&&setProductsLoading(false)); return()=>{active=false}; }, []);
 
   const beginSearch = () => {
@@ -54,6 +55,9 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const autoLocate = () => setLocationPickerOpen(true);
 
   const applyLocation = (result: LocationPickerResult) => {
+    const saved = { label: result.primaryLabel || result.label, detail: result.detail, mapLink: result.mapLink, latitude: result.latitude, longitude: result.longitude };
+    saveCurrentLocation(saved);
+    setCurrentLocation({ ...saved, updatedAt: new Date().toISOString() });
     chooseRegion(result.primaryLabel || result.label);
     setLocationPickerOpen(false);
     setRegionOpen(false);
@@ -178,15 +182,17 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
 
       {regionOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35" onClick={() => setRegionOpen(false)}>
-          <section onClick={e=>e.stopPropagation()} className="w-full max-w-[390px] rounded-t-[28px] bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
+          <section onClick={e=>e.stopPropagation()} className="max-h-[86vh] w-full max-w-[390px] overflow-auto rounded-t-[28px] bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
             <div className="mx-auto h-1 w-10 rounded-full bg-slate-200"/>
-            <div className="mt-5 flex items-center justify-between"><h2 className="text-lg font-bold text-slate-800">选择地区</h2><button type="button" aria-label="关闭" onClick={()=>setRegionOpen(false)} className="flex size-9 items-center justify-center rounded-full bg-slate-100"><X size={18}/></button></div>
-            <button type="button" onClick={autoLocate} className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-[#edf3f6] p-4 text-left text-[#607d96]">
-              <span className="flex size-10 items-center justify-center rounded-full bg-white"><Navigation size={19}/></span>
-              <span><b className="block text-sm">"自动获取当前位置"</b><span className="mt-1 block text-[11px] text-slate-500">允许定位后自动选择附近地区</span></span>
-            </button>
-            <div className="mt-4 grid grid-cols-2 gap-2">{regions.map(item=><button type="button" key={item} onClick={()=>chooseRegion(item)} className={`rounded-xl border px-3 py-3 text-sm ${region===item?"border-[#7189a1] bg-[#edf2f5] text-[#607a92]":"border-slate-100 text-slate-600"}`}>{item}</button>)}</div>
-            <button type="button" onClick={() => setLocationPickerOpen(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"><MapPin size={17}/>手动粘贴 Google 地图链接</button>
+            <div className="mt-5 flex items-center justify-between"><div><h2 className="text-lg font-bold text-slate-800">当前位置</h2><p className="mt-1 text-[11px] text-slate-400">选择首页展示及附近服务区域</p></div><button type="button" aria-label="关闭" onClick={()=>setRegionOpen(false)} className="flex size-9 items-center justify-center rounded-full bg-slate-100"><X size={18}/></button></div>
+            <div className="mt-4 rounded-2xl border border-[#dce6ec] bg-[#f4f8fa] p-4">
+              <div className="flex items-start gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[#607d96]"><Navigation size={19}/></span><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><b className="truncate text-sm text-slate-700">{currentLocation?.label||region}</b>{currentLocation&&<span className="shrink-0 rounded-full bg-[#e4eee8] px-2 py-1 text-[9px] text-[#63806d]">已定位</span>}</div><p className="mt-1 line-clamp-3 text-[11px] leading-5 text-slate-500">{currentLocation?.detail||"尚未获取实时位置，可点击下方重新定位"}</p>{currentLocation&&<p className="mt-1 text-[10px] text-slate-400">{currentLocation.latitude}, {currentLocation.longitude}</p>}</div></div>
+              <button type="button" onClick={autoLocate} className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#7189a1] py-3 text-xs font-semibold text-white"><Navigation size={15}/>{currentLocation?"重新定位":"获取实时位置"}</button>
+            </div>
+            <div className="mt-5 flex items-center gap-3"><span className="text-xs font-semibold text-slate-700">直接选择地区</span><span className="h-px flex-1 bg-slate-100"/></div>
+            <div className="mt-3 grid grid-cols-2 gap-2">{regions.map(item=><button type="button" key={item} onClick={()=>chooseRegion(item)} className={`rounded-xl border px-3 py-3 text-sm ${region===item?"border-[#7189a1] bg-[#edf2f5] text-[#607a92]":"border-slate-100 text-slate-600"}`}>{item}</button>)}</div>
+            <button type="button" onClick={() => setLocationPickerOpen(true)} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"><MapPin size={17}/>手动添加 Google 地图位置</button>
+            <p className="mt-2 text-center text-[10px] leading-5 text-slate-400">手动添加支持粘贴 Google Maps 分享链接并自动解析详细地址</p>
           </section>
         </div>
       )}
