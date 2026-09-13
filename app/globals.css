@@ -97,32 +97,32 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 }
 
 /* 分层玻璃材质：只处理卡片表面，避免嵌套内容重复透明造成重叠 */
-main[class~="bg-[#f5f7f9]"],
-main[class~="bg-[#f4f6f8]"],
-main[class~="bg-[#eef2f5]"] { background: transparent !important; }
-main :where(section,article)[class~="bg-white"],
-main div[class~="bg-white"][class*="rounded"] {
+.katu-app-shell main[class~="bg-[#f5f7f9]"],
+.katu-app-shell main[class~="bg-[#f4f6f8]"],
+.katu-app-shell main[class~="bg-[#eef2f5]"] { background: transparent !important; }
+.katu-app-shell main :where(section,article)[class~="bg-white"],
+.katu-app-shell main div[class~="bg-white"][class*="rounded"] {
   background-color: rgba(var(--katu-glass),var(--katu-glass-alpha)) !important;
   border: 1px solid rgba(255,255,255,var(--katu-border-alpha));
   -webkit-backdrop-filter: blur(var(--katu-blur)) saturate(140%);
   backdrop-filter: blur(var(--katu-blur)) saturate(140%);
 }
-main button[class~="bg-white"][class*="rounded"] {
+.katu-app-shell main button[class~="bg-white"][class*="rounded"] {
   background-color: rgba(255,255,255,.76) !important;
   border-color: rgba(255,255,255,.72);
   -webkit-backdrop-filter: blur(14px) saturate(135%);
   backdrop-filter: blur(14px) saturate(135%);
 }
-main :where(section,article)[class*="shadow"],
-main div[class~="bg-white"][class*="shadow"] { box-shadow: var(--katu-shadow) !important; }
-main > header[class*="sticky"] {
+.katu-app-shell main :where(section,article)[class*="shadow"],
+.katu-app-shell main div[class~="bg-white"][class*="shadow"] { box-shadow: var(--katu-shadow) !important; }
+.katu-app-shell main > header[class*="sticky"] {
   background: rgba(255,241,219,.84) !important;
   border-color: rgba(255,255,255,.74) !important;
   box-shadow: 0 8px 30px rgba(66,82,98,.07);
   -webkit-backdrop-filter: blur(24px) saturate(155%);
   backdrop-filter: blur(24px) saturate(155%);
 }
-div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
+.katu-app-shell div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
   background: rgba(255,244,226,.92) !important;
   border: 1px solid rgba(255,255,255,.9);
   -webkit-backdrop-filter: blur(30px) saturate(150%);
@@ -159,61 +159,7 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
 }
 
 
-/* 全站暖橘玻璃统一层：覆盖遗留的白卡、灰蓝按钮与悬浮操作栏 */
-:where(main, .katu-app-shell) :where(section, article, aside)[class*="rounded"],
-:where(main, .katu-app-shell) div[class~="bg-white"][class*="rounded"] {
-  background-color: rgba(var(--katu-glass), var(--katu-glass-alpha)) !important;
-  border-color: rgba(255, 225, 183, .72) !important;
-  box-shadow: 0 16px 42px rgba(139, 86, 37, .13), inset 0 1px 0 rgba(255,255,255,.78) !important;
-}
-
-:where(main, .katu-app-shell) :where(button, a)[class*="rounded"] {
-  -webkit-backdrop-filter: blur(16px) saturate(145%);
-  backdrop-filter: blur(16px) saturate(145%);
-}
-
-:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(.katu-primary):not([class*="bg-red"]):not([class*="bg-rose"]) {
-  background-color: rgba(255, 224, 180, .55) !important;
-  border-color: rgba(214, 148, 74, .30) !important;
-  box-shadow: 0 8px 22px rgba(150, 91, 38, .10), inset 0 1px 0 rgba(255,255,255,.68);
-}
-
-:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(:disabled):hover {
-  background-color: rgba(255, 211, 151, .70) !important;
-}
-
-:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#7189a1]"],
-:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#667f98]"],
-:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#6f86a1]"],
-:where(main, .katu-app-shell) .katu-primary {
-  background: linear-gradient(145deg, rgb(var(--katu-accent)), rgb(var(--katu-accent-strong))) !important;
-  border-color: rgba(255, 233, 202, .55) !important;
-  color: #fffaf4 !important;
-  box-shadow: 0 12px 28px rgba(var(--katu-accent-strong), .25), inset 0 1px 0 rgba(255,255,255,.35) !important;
-}
-
-:where(main, .katu-app-shell) :where(header, footer)[class*="fixed"],
-:where(main, .katu-app-shell) :where(header, footer)[class*="sticky"] {
-  background-color: rgba(255, 239, 215, .82) !important;
-  border-color: rgba(255, 226, 185, .76) !important;
-  -webkit-backdrop-filter: blur(26px) saturate(155%);
-  backdrop-filter: blur(26px) saturate(155%);
-}
-
-:where(main, .katu-app-shell) :where(input, textarea, select) {
-  background-color: rgba(255, 246, 232, .66) !important;
-  border-color: rgba(214, 148, 74, .24) !important;
-}
-
-:where(main, .katu-app-shell) :where(.bg-slate-50, .bg-slate-100, .bg-slate-200) {
-  background-color: rgba(248, 214, 168, .48) !important;
-}
-
-::selection { background: rgba(244, 184, 108, .48); color: rgb(var(--katu-text)); }
-
-
-/* 双外观系统：白色玻璃 / 深黑玻璃 */
-:root,
+/* 双外观系统：仅作用于用户前端 */
 :root[data-katu-theme="light"] {
   color-scheme: light;
   --katu-accent: 28 28 31;
@@ -224,13 +170,12 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   --katu-page: #edf0f3;
   --katu-page-glow: rgba(255,255,255,.96);
   --katu-shell: rgba(255,255,255,.34);
-  --katu-control: rgba(255,255,255,.58);
-  --katu-control-hover: rgba(255,255,255,.78);
-  --katu-border: rgba(255,255,255,.72);
+  --katu-control: rgba(255,255,255,.62);
+  --katu-control-hover: rgba(255,255,255,.82);
+  --katu-border: rgba(255,255,255,.74);
   --katu-primary-text: #fff;
   --katu-shadow: 0 18px 52px rgba(15,23,42,.13), inset 0 1px 0 rgba(255,255,255,.82);
 }
-
 :root[data-katu-theme="dark"] {
   color-scheme: dark;
   --katu-accent: 245 245 247;
@@ -241,8 +186,8 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   --katu-page: #050506;
   --katu-page-glow: rgba(75,75,82,.34);
   --katu-shell: rgba(8,8,10,.62);
-  --katu-control: rgba(255,255,255,.075);
-  --katu-control-hover: rgba(255,255,255,.13);
+  --katu-control: rgba(255,255,255,.085);
+  --katu-control-hover: rgba(255,255,255,.14);
   --katu-border: rgba(255,255,255,.14);
   --katu-primary-text: #08080a;
   --katu-shadow: 0 20px 58px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.10);
@@ -251,64 +196,80 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   --katu-border-alpha: .14;
 }
 
-html { background: var(--katu-page) !important; }
-body {
+:root[data-katu-theme] body {
   color: rgb(var(--katu-text)) !important;
   background:
     radial-gradient(circle at 14% 8%, var(--katu-page-glow), transparent 34%),
     radial-gradient(circle at 88% 22%, rgba(150,160,175,.18), transparent 38%),
-    linear-gradient(145deg, var(--katu-page), var(--katu-page)) !important;
+    linear-gradient(145deg,var(--katu-page),var(--katu-page)) !important;
 }
-body::before { background: rgba(148,163,184,.14) !important; }
-body::after { background: rgba(255,255,255,.10) !important; }
+:root[data-katu-theme] body::before { background: rgba(148,163,184,.14) !important; }
+:root[data-katu-theme] body::after { background: rgba(255,255,255,.10) !important; }
 
-.katu-app-shell {
+:root[data-katu-theme] .katu-app-shell {
+  color: rgb(var(--katu-text));
   background: var(--katu-shell) !important;
   border-color: var(--katu-border) !important;
   box-shadow: 0 0 70px rgba(0,0,0,.18) !important;
 }
-.katu-glass,
-.katu-glass-strong,
-.katu-floating-nav,
-:where(main, .katu-app-shell) :where(section, article, aside)[class*="rounded"],
-:where(main, .katu-app-shell) div[class~="bg-white"][class*="rounded"],
-div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
+:root[data-katu-theme] .katu-app-shell :where(.katu-glass,.katu-glass-strong,.katu-floating-nav),
+:root[data-katu-theme] .katu-app-shell :where(section,article,aside)[class*="rounded"],
+:root[data-katu-theme] .katu-app-shell div[class~="bg-white"][class*="rounded"],
+:root[data-katu-theme] .katu-app-shell div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
   background-color: rgba(var(--katu-glass),var(--katu-glass-alpha)) !important;
   border-color: var(--katu-border) !important;
   box-shadow: var(--katu-shadow) !important;
 }
-
-:where(main, .katu-app-shell) :where(header, footer)[class*="fixed"],
-:where(main, .katu-app-shell) :where(header, footer)[class*="sticky"],
-main > header[class*="sticky"] {
+:root[data-katu-theme] .katu-app-shell :where(header,footer)[class*="fixed"],
+:root[data-katu-theme] .katu-app-shell :where(header,footer)[class*="sticky"],
+:root[data-katu-theme] .katu-app-shell main > header[class*="sticky"] {
   background: rgba(var(--katu-glass),var(--katu-glass-strong)) !important;
   border-color: var(--katu-border) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(145%);
+  backdrop-filter: blur(26px) saturate(145%);
 }
-
-:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(.katu-primary):not([class*="bg-red"]):not([class*="bg-rose"]),
-:where(main, .katu-app-shell) :where(input, textarea, select) {
+:root[data-katu-theme] .katu-app-shell :where(button,a)[class*="rounded"]:not(.katu-primary):not([class*="bg-red"]):not([class*="bg-rose"]),
+:root[data-katu-theme] .katu-app-shell :where(input,textarea,select) {
   background: var(--katu-control) !important;
   border-color: var(--katu-border) !important;
   color: rgb(var(--katu-text));
 }
-:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(:disabled):hover {
-  background: var(--katu-control-hover) !important;
-}
-
-.katu-primary,
-:where(button,a)[class~="bg-[#7189a1]"],
-:where(button,a)[class~="bg-[#667f98]"],
-:where(button,a)[class~="bg-[#6f86a1]"] {
+:root[data-katu-theme] .katu-app-shell :where(button,a)[class*="rounded"]:not(:disabled):hover { background: var(--katu-control-hover) !important; }
+:root[data-katu-theme] .katu-app-shell :where(.katu-primary,button[class~="bg-[#7189a1]"],a[class~="bg-[#7189a1]"],button[class~="bg-[#667f98]"],a[class~="bg-[#667f98]"],button[class~="bg-[#6f86a1]"],a[class~="bg-[#6f86a1]"]) {
   background: linear-gradient(145deg,rgb(var(--katu-accent)),rgb(var(--katu-accent-strong))) !important;
   color: var(--katu-primary-text) !important;
   border-color: var(--katu-border) !important;
   box-shadow: 0 12px 30px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.24) !important;
 }
 
-:root[data-katu-theme="dark"] :where(.text-slate-900,.text-slate-800,.text-slate-700,.text-slate-600) { color: rgb(238 238 242) !important; }
-:root[data-katu-theme="dark"] :where(.text-slate-500,.text-slate-400) { color: rgb(var(--katu-muted)) !important; }
-:root[data-katu-theme="dark"] :where(.text-slate-300) { color: rgb(125 125 136) !important; }
-:root[data-katu-theme="dark"] :where(.border-slate-100,.border-slate-200,.divide-slate-100) { border-color: rgba(255,255,255,.11) !important; }
-:root[data-katu-theme="dark"] :where(.bg-white,.bg-slate-50,.bg-slate-100,.bg-slate-200) { background-color: rgba(255,255,255,.07) !important; }
-:root[data-katu-theme="dark"] input::placeholder,
-:root[data-katu-theme="dark"] textarea::placeholder { color: rgb(125 125 136); }
+:root[data-katu-theme="dark"] .katu-app-shell :where(.text-slate-900,.text-slate-800,.text-slate-700,.text-slate-600) { color: rgb(238 238 242) !important; }
+:root[data-katu-theme="dark"] .katu-app-shell :where(.text-slate-500,.text-slate-400) { color: rgb(var(--katu-muted)) !important; }
+:root[data-katu-theme="dark"] .katu-app-shell :where(.text-slate-300) { color: rgb(125 125 136) !important; }
+:root[data-katu-theme="dark"] .katu-app-shell :where(.border-slate-100,.border-slate-200,.divide-slate-100) { border-color: rgba(255,255,255,.11) !important; }
+:root[data-katu-theme="dark"] .katu-app-shell :where(.bg-white,.bg-slate-50,.bg-slate-100,.bg-slate-200) { background-color: rgba(255,255,255,.07) !important; }
+
+/* 移动端输入与多语言字形 */
+.katu-app-shell,
+.katu-app-shell :where(button,input,textarea,select) {
+  font-family: "Noto Sans Myanmar","Pyidaungsu","Myanmar Text","Padauk","Noto Sans","PingFang SC","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+}
+.katu-app-shell :where(input,textarea,select) {
+  min-height: 44px;
+  font-size: 16px !important;
+  line-height: 1.5;
+  border-radius: 16px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+}
+.katu-app-shell textarea { min-height: 96px; resize: vertical; }
+.katu-app-shell :where(input,textarea,select):focus {
+  outline: none;
+  border-color: rgba(var(--katu-accent),.42) !important;
+  box-shadow: 0 0 0 4px rgba(var(--katu-accent),.10) !important;
+}
+.katu-app-shell :where(input,textarea)::placeholder { color: rgb(var(--katu-muted)); opacity: .72; }
+.katu-app-shell button { touch-action: manipulation; }
+.katu-app-shell { -webkit-overflow-scrolling: touch; }
