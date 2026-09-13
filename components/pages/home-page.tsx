@@ -88,7 +88,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
             className="flex h-10 min-w-0 flex-1 items-center rounded-full border border-slate-100 bg-white px-3 shadow-sm transition-all">
             <Search size={17} className="mr-2 shrink-0 text-slate-400" />
             <input ref={inputRef} value={keyword} onFocus={beginSearch} onChange={e => setKeyword(e.target.value)}
-              placeholder="搜美食、商品或服务" className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
+              placeholder="搜美食、商品或服务" className="katu-search-input min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
             {searching && keyword && <button type="button" aria-label="清空" onClick={e => {e.stopPropagation();setKeyword("");inputRef.current?.focus();}} className="text-slate-400"><X size={17}/></button>}
           </form>
           {!searching && (
