@@ -170,6 +170,7 @@ export async function GET(request: Request) {
     const road = clean(address.road);
     const houseNumber = clean(address.house_number);
     const postcode = clean(address.postcode);
+    const street = [road, houseNumber].filter(Boolean).join(" ");
 
     const detailedParts = uniqueParts([
       state,
