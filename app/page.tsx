@@ -29,6 +29,7 @@ export default function Page(){
  useEffect(()=>{setCartCount(cartQuantity());const sync=()=>setCartCount(cartQuantity());window.addEventListener("katu:cart",sync);return()=>window.removeEventListener("katu:cart",sync)},[]);
  useEffect(()=>{let active=true;fetch("/api/auth/me",{cache:"no-store",credentials:"include"}).then(r=>r.ok?r.json():null).then(r=>{if(active)setUser(r?.user??null)}).catch(()=>active&&setUser(null));return()=>{active=false}},[]);
  const navigate=(next:View)=>{if(next===view)return;history.current.push(view);setView(next);window.scrollTo({top:0,behavior:"smooth"})};
+ const replaceView=(next:View)=>{setView(next);window.scrollTo({top:0,behavior:"smooth"})};
  const goBack=()=>{const target=history.current.pop()||"home";setView(target);window.scrollTo({top:0,behavior:"smooth"})};
  const openProduct=(id:string)=>{setSelectedProductId(id);navigate("product")};
  const openSearch=(q:string)=>{setSearchKeyword(q);navigate("search")};
@@ -39,11 +40,11 @@ export default function Page(){
   {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user}/>}
   {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
   {view==="messages"&&<MessagesPage/>}
-  {view==="profile"&&<ProfilePage onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);navigate("home")}}/>}
+  {view==="profile"&&<ProfilePage onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);history.current=[];replaceView("home")}}/>}
   {view==="product"&&<ProductPage productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
   {view==="publish"&&<PublishPage onBack={goBack}/>}
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
-  {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);navigate("profile")}}/>}
+  {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);history.current=history.current.filter(x=>x!=="login");replaceView("profile")}}/>}
   {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
   {view==="checkout"&&<CheckoutPage total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
