@@ -652,3 +652,14 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
     animation: none !important;
   }
 }
+
+
+/* 固定居中按钮按压时必须保留 translateX，避免向右跳动 */
+:root[data-katu-theme] .katu-app-shell button[class*="left-1/2"][class*="-translate-x-1/2"]:not(:disabled):active {
+  transform: translateX(-50%) translateY(1px) scale(.965) !important;
+}
+@media (hover:hover) and (pointer:fine) {
+  :root[data-katu-theme] .katu-app-shell button[class*="left-1/2"][class*="-translate-x-1/2"]:not(:disabled):hover {
+    transform: translateX(-50%) translateY(-2px) !important;
+  }
+}
