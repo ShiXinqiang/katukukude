@@ -6,20 +6,20 @@
 
 :root {
   color-scheme: light;
-  --katu-accent: 176 126 89;
-  --katu-accent-strong: 151 101 68;
+  --katu-accent: 194 132 67;
+  --katu-accent-strong: 163 96 39;
   --katu-text: 42 55 70;
-  --katu-glass: 255 250 244;
+  --katu-glass: 255 244 226;
   --katu-glass-alpha: .70;
   --katu-glass-strong: .84;
-  --katu-border-alpha: .58;
+  --katu-border-alpha: .66;
   --katu-blur: 22px;
   --katu-radius: 24px;
   --katu-shadow: 0 18px 50px rgba(67, 83, 99, .12), inset 0 1px 0 rgba(255, 255, 255, .72);
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; background: #e9dfd4; }
+html { min-height: 100%; background: #ead8c2; }
 body {
   margin: 0;
   min-width: 320px;
@@ -31,9 +31,9 @@ body {
   font-kerning: normal;
   background:
     radial-gradient(circle at 12% 8%, rgba(255,255,255,.96) 0 12%, transparent 38%),
-    radial-gradient(circle at 90% 20%, rgba(226,184,142,.44), transparent 36%),
-    radial-gradient(circle at 40% 90%, rgba(236,205,167,.38), transparent 38%),
-    linear-gradient(145deg,#f7f0e8 0%,#eadfd4 46%,#f2e8dd 100%);
+    radial-gradient(circle at 90% 20%, rgba(242,181,105,.50), transparent 36%),
+    radial-gradient(circle at 40% 90%, rgba(248,204,132,.42), transparent 38%),
+    linear-gradient(145deg,#fff8ed 0%,#edddc8 46%,#faead4 100%);
   background-attachment: fixed;
 }
 
@@ -46,8 +46,8 @@ body::after {
   filter: blur(12px);
   pointer-events: none;
 }
-body::before { width: 210px; height: 210px; left: -70px; top: 18%; background: rgba(222,177,132,.27); }
-body::after { width: 250px; height: 250px; right: -100px; bottom: 8%; background: rgba(238,190,139,.25); }
+body::before { width: 210px; height: 210px; left: -70px; top: 18%; background: rgba(237,164,84,.32); }
+body::after { width: 250px; height: 250px; right: -100px; bottom: 8%; background: rgba(250,189,96,.30); }
 
 button,input,textarea,select { font: inherit; }
 button {
@@ -62,7 +62,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 ::selection { background: #d6e1e8; color: #334155; }
 
 .katu-app-shell {
-  background: rgba(251,245,238,.42) !important;
+  background: rgba(255,239,216,.48) !important;
   border-left: 1px solid rgba(255,255,255,.56);
   border-right: 1px solid rgba(255,255,255,.56);
   box-shadow: 0 0 70px rgba(73,91,108,.13);
@@ -86,7 +86,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   width: calc(100% - 20px) !important;
   height: 68px;
   border-radius: 25px;
-  background: rgba(255,249,242,.76) !important;
+  background: rgba(255,239,215,.80) !important;
   border: 1px solid rgba(255,255,255,.82) !important;
   box-shadow: 0 18px 50px rgba(54,70,86,.22), inset 0 1px 0 rgba(255,255,255,.95);
   -webkit-backdrop-filter: blur(26px) saturate(165%);
@@ -116,14 +116,14 @@ main button[class~="bg-white"][class*="rounded"] {
 main :where(section,article)[class*="shadow"],
 main div[class~="bg-white"][class*="shadow"] { box-shadow: var(--katu-shadow) !important; }
 main > header[class*="sticky"] {
-  background: rgba(252,247,241,.8) !important;
+  background: rgba(255,241,219,.84) !important;
   border-color: rgba(255,255,255,.74) !important;
   box-shadow: 0 8px 30px rgba(66,82,98,.07);
   -webkit-backdrop-filter: blur(24px) saturate(155%);
   backdrop-filter: blur(24px) saturate(155%);
 }
 div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
-  background: rgba(252,253,254,.9) !important;
+  background: rgba(255,244,226,.92) !important;
   border: 1px solid rgba(255,255,255,.9);
   -webkit-backdrop-filter: blur(30px) saturate(150%);
   backdrop-filter: blur(30px) saturate(150%);
@@ -157,3 +157,56 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   0%,100% { opacity: .55; transform: scale(.98); }
   50% { opacity: 1; transform: scale(1); }
 }
+
+
+/* 全站暖橘玻璃统一层：覆盖遗留的白卡、灰蓝按钮与悬浮操作栏 */
+:where(main, .katu-app-shell) :where(section, article, aside)[class*="rounded"],
+:where(main, .katu-app-shell) div[class~="bg-white"][class*="rounded"] {
+  background-color: rgba(var(--katu-glass), var(--katu-glass-alpha)) !important;
+  border-color: rgba(255, 225, 183, .72) !important;
+  box-shadow: 0 16px 42px rgba(139, 86, 37, .13), inset 0 1px 0 rgba(255,255,255,.78) !important;
+}
+
+:where(main, .katu-app-shell) :where(button, a)[class*="rounded"] {
+  -webkit-backdrop-filter: blur(16px) saturate(145%);
+  backdrop-filter: blur(16px) saturate(145%);
+}
+
+:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(.katu-primary):not([class*="bg-red"]):not([class*="bg-rose"]) {
+  background-color: rgba(255, 224, 180, .55) !important;
+  border-color: rgba(214, 148, 74, .30) !important;
+  box-shadow: 0 8px 22px rgba(150, 91, 38, .10), inset 0 1px 0 rgba(255,255,255,.68);
+}
+
+:where(main, .katu-app-shell) :where(button, a)[class*="rounded"]:not(:disabled):hover {
+  background-color: rgba(255, 211, 151, .70) !important;
+}
+
+:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#7189a1]"],
+:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#667f98]"],
+:where(main, .katu-app-shell) :where(button, a)[class~="bg-[#6f86a1]"],
+:where(main, .katu-app-shell) .katu-primary {
+  background: linear-gradient(145deg, rgb(var(--katu-accent)), rgb(var(--katu-accent-strong))) !important;
+  border-color: rgba(255, 233, 202, .55) !important;
+  color: #fffaf4 !important;
+  box-shadow: 0 12px 28px rgba(var(--katu-accent-strong), .25), inset 0 1px 0 rgba(255,255,255,.35) !important;
+}
+
+:where(main, .katu-app-shell) :where(header, footer)[class*="fixed"],
+:where(main, .katu-app-shell) :where(header, footer)[class*="sticky"] {
+  background-color: rgba(255, 239, 215, .82) !important;
+  border-color: rgba(255, 226, 185, .76) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+  backdrop-filter: blur(26px) saturate(155%);
+}
+
+:where(main, .katu-app-shell) :where(input, textarea, select) {
+  background-color: rgba(255, 246, 232, .66) !important;
+  border-color: rgba(214, 148, 74, .24) !important;
+}
+
+:where(main, .katu-app-shell) :where(.bg-slate-50, .bg-slate-100, .bg-slate-200) {
+  background-color: rgba(248, 214, 168, .48) !important;
+}
+
+::selection { background: rgba(244, 184, 108, .48); color: rgb(var(--katu-text)); }
