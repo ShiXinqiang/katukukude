@@ -391,3 +391,16 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
 :root[data-katu-theme="dark"] .katu-app-shell textarea {
   background: rgba(255,255,255,.055) !important;
 }
+
+
+/* 深色模式中所有遗留浅色十六进制表面统一为暗玻璃 */
+:root[data-katu-theme="dark"] .katu-app-shell [class*="bg-[#e"],
+:root[data-katu-theme="dark"] .katu-app-shell [class*="bg-[#f"] {
+  background-color: rgba(255,255,255,.075) !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+:root[data-katu-theme="dark"] .katu-app-shell span[class*="bg-[#e"][class*="rounded"],
+:root[data-katu-theme="dark"] .katu-app-shell span[class*="bg-[#f"][class*="rounded"] {
+  color: rgb(214 214 222) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+}
