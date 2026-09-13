@@ -12,7 +12,7 @@ function Header({title,onBack}:{title:string;onBack:()=>void}) {
 export function AddressesPage({onBack}:{onBack:()=>void}) {
  const [items,setItems]=useState<SavedAddress[]>([]);
  const [editing,setEditing]=useState(false);
- const [form,setForm]=useState({label:"家",contact:"",phone:"",detail:"",googleMapsUrl:""});
+ const [form,setForm]=useState({label:"家",contact:"",phone:"",detail:"",googleMapsUrl:"",latitude:"",longitude:""});
  const [locationPickerOpen,setLocationPickerOpen]=useState(false); const [hint,setHint]=useState("");
  useEffect(()=>setItems(readAddresses()),[]);
  const persist=(next:SavedAddress[])=>{setItems(next);saveAddresses(next)};
@@ -23,7 +23,7 @@ export function AddressesPage({onBack}:{onBack:()=>void}) {
  const autoFill = () => setLocationPickerOpen(true);
 
  const applyLocation = (result: LocationPickerResult) => {
-   setForm(prev=>({...prev,googleMapsUrl:result.mapLink,detail:result.detail||prev.detail}));
+   setForm(prev=>({...prev,googleMapsUrl:result.mapLink,detail:result.detail||prev.detail,latitude:result.latitude,longitude:result.longitude}));
    setHint("已识别："+result.label+"，请确认后保存");
    setLocationPickerOpen(false);
  };
@@ -40,14 +40,54 @@ export function AddressesPage({onBack}:{onBack:()=>void}) {
 export function HomeRoutePage({onBack,onManage}:{onBack:()=>void;onManage:()=>void}) {
  const [items,setItems]=useState<SavedAddress[]>([]); const [selected,setSelected]=useState("");
  useEffect(()=>{const a=readAddresses();setItems(a);setSelected(a.find(x=>x.isHome)?.id||a[0]?.id||"")},[]);
- const chosen=items.find(x=>x.id===selected); const valid=!!chosen&&isGoogleMapsLink(chosen.googleMapsUrl);
- const go=()=>{
+ const chosen=items.find(x=>x.id===selected);
+ const [navigating,setNavigating]=useState(false); const [routeHint,setRouteHint]=useState("");
+
+ const readCoordinates=(value:string)=>{
+   let decoded=value;
+   try{decoded=decodeURIComponent(value)}catch{}
+   const patterns=[
+     /[?&](?:query|q|ll|destination)=\s*(-?\d{1,3}(?:\.\d+)?)\s*[, ]\s*(-?\d{1,3}(?:\.\d+)?)/i,
+     /@\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/i,
+     /!3d(-?\d{1,3}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/i,
+   ];
+   for(const pattern of patterns){
+     const match=decoded.match(pattern);
+     if(!match) continue;
+     const latitude=Number(match[1]); const longitude=Number(match[2]);
+     if(Number.isFinite(latitude)&&Number.isFinite(longitude)&&latitude>=-90&&latitude<=90&&longitude>=-180&&longitude<=180){
+       return latitude+","+longitude;
+     }
+   }
+   return "";
+ };
+ const storedCoordinates=chosen?.latitude&&chosen?.longitude?chosen.latitude+","+chosen.longitude:"";
+ const coordinate=storedCoordinates||readCoordinates(chosen?.googleMapsUrl||"");
+ const valid=!!chosen&&isGoogleMapsLink(chosen.googleMapsUrl);
+
+ const go=async()=>{
    if(!chosen||!valid) return;
-   const destination=encodeURIComponent(chosen.googleMapsUrl);
-   window.open(`https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`,"_blank","noopener,noreferrer");
+   setNavigating(true); setRouteHint("");
+   let destination=coordinate;
+   if(!destination){
+     try{
+       const response=await fetch("/api/location/resolve?url="+encodeURIComponent(chosen.googleMapsUrl),{cache:"no-store"});
+       const resolved=await response.json() as {latitude?:number;longitude?:number;message?:string};
+       if(response.ok&&Number.isFinite(resolved.latitude)&&Number.isFinite(resolved.longitude)){
+         destination=resolved.latitude+","+resolved.longitude;
+       }else{
+         throw new Error(resolved.message||"无法读取地图坐标");
+       }
+     }catch(error){
+       setRouteHint(error instanceof Error?error.message:"无法读取地图坐标，请重新选择地址");
+       setNavigating(false);
+       return;
+     }
+   }
+   window.location.assign("https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(destination)+"&travelmode=driving");
  };
  return <main className="min-h-screen bg-[#f5f7f9] pb-28"><Header title="导航到家" onBack={onBack}/><section className="bg-gradient-to-br from-[#7189a1] to-[#94a7b8] px-5 py-7 text-white"><Home size={26}/><h2 className="mt-3 text-xl font-bold">选择要回去的地址</h2><p className="mt-2 text-sm text-white/75">继续后将从你当前的位置打开 Google 地图网页版导航</p></section><div className="space-y-3 p-4">
  {items.length===0?<button type="button" onClick={onManage} className="flex w-full items-center justify-between rounded-3xl bg-white p-5 text-left shadow-sm"><span><b className="text-sm text-slate-800">先添加到家地址</b><span className="mt-1 block text-xs text-slate-400">需要保存 Google 地图位置链接</span></span><ChevronRight size={19} className="text-slate-400"/></button>:items.map(item=><button type="button" key={item.id} onClick={()=>setSelected(item.id)} className={`flex w-full items-start gap-3 rounded-3xl border bg-white p-4 text-left ${selected===item.id?"border-[#7189a1]":"border-transparent"}`}><span className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border ${selected===item.id?"border-[#7189a1] bg-[#7189a1] text-white":"border-slate-300"}`}>{selected===item.id&&<Check size={13}/>}</span><span className="flex-1"><b className="text-sm text-slate-800">{item.label}{item.isHome&&" · 默认到家"}</b><span className="mt-1 block text-sm text-slate-600">{item.detail}</span>{!isGoogleMapsLink(item.googleMapsUrl)&&<span className="mt-2 flex items-center gap-1 text-[11px] text-amber-600"><CircleAlert size={13}/>此地址没有有效 Google 地图链接，不能导航</span>}</span></button>)}
  <button type="button" onClick={onManage} className="flex w-full items-center justify-center gap-2 py-3 text-sm font-semibold text-[#607d96]"><Plus size={17}/>管理地址</button>
- </div><div className="fixed bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 border-t border-slate-100 bg-white/95 p-4 backdrop-blur"><button type="button" disabled={!valid} onClick={go} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#7189a1] py-4 text-sm font-bold text-white disabled:bg-slate-300"><Navigation size={18}/>继续并开始导航</button></div></main>;
+ </div>{routeHint&&<p className="mx-4 mb-3 rounded-xl bg-amber-50 px-3 py-2 text-center text-xs leading-5 text-amber-700">{routeHint}</p>}<div className="fixed bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 border-t border-slate-100 bg-white/95 p-4 backdrop-blur"><button type="button" disabled={!valid||navigating} onClick={go} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#7189a1] py-4 text-sm font-bold text-white disabled:bg-slate-300"><Navigation size={18}/>{navigating?"正在打开导航…":"继续并开始导航"}</button></div></main>;
 }

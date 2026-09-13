@@ -6,6 +6,8 @@ export type SavedAddress = {
   phone: string;
   detail: string;
   googleMapsUrl: string;
+  latitude?: string;
+  longitude?: string;
   isHome: boolean;
 };
 

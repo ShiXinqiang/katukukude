@@ -163,13 +163,32 @@ export async function GET(request: Request) {
     const city = formatCity(address.city || address.town || address.municipality);
     const district = readable(address.state_district || address.district);
     const village = clean(address.village || address.hamlet || address.suburb || address.neighbourhood);
-    const street = [address.road, address.house_number].filter(Boolean).join(" ");
+    const suburb = clean(address.suburb);
+    const neighbourhood = clean(address.neighbourhood);
+    const quarter = clean(address.quarter);
+    const hamlet = clean(address.hamlet);
+    const road = clean(address.road);
+    const houseNumber = clean(address.house_number);
+    const postcode = clean(address.postcode);
 
-    const administrativeParts = uniqueParts([state, autonomous, township, city]);
-    if (administrativeParts.length < 2 && village) administrativeParts.push(village);
+    const detailedParts = uniqueParts([
+      state,
+      autonomous,
+      district,
+      township,
+      city,
+      village,
+      suburb,
+      neighbourhood,
+      quarter,
+      hamlet,
+      road,
+      houseNumber,
+      postcode
+    ]);
 
     const label =
-      administrativeParts.join(" · ") ||
+      detailedParts.join(" · ") ||
       data.display_name ||
       ("当前位置 · " + lat.toFixed(3) + ", " + lon.toFixed(3));
 

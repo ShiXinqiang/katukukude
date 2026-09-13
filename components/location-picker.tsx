@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Clipboard,
   ExternalLink,
@@ -125,6 +125,7 @@ export function LocationPicker({
   const [locating, setLocating] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [message, setMessage] = useState("");
+  const [mapsOpened, setMapsOpened] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const useCurrentLocation = async () => {
@@ -163,8 +164,8 @@ export function LocationPicker({
     }
   };
 
-  const resolveManualLink = async () => {
-    const value = link.trim();
+  const resolveManualLink = async (linkValue = link) => {
+    const value = linkValue.trim();
     if (!value) {
       setMessage("请先粘贴 Google 地图分享链接。");
       inputRef.current?.focus();
@@ -238,16 +239,41 @@ export function LocationPicker({
     }
   };
 
+  useEffect(() => {
+    if (!mapsOpened) return;
+
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible" || locating || resolving) return;
+      void navigator.clipboard?.readText().then((value) => {
+        const copied = value.trim();
+        if (
+          !copied ||
+          copied === link ||
+          !/(maps\\.app\\.goo\\.gl|goo\\.gl|google\\.[^/\\s]+\\/maps)/i.test(copied)
+        ) {
+          return;
+        }
+        setLink(copied);
+        setMessage("检测到刚刚复制的地图链接，正在自动解析…");
+        void resolveManualLink(copied);
+      }).catch(() => undefined);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [link, locating, mapsOpened, resolving]);
+
   const openGoogleMaps = () => {
     const opened = window.open(
       "https://www.google.com/maps",
       "_blank",
       "noopener,noreferrer",
     );
+    setMapsOpened(true);
     setMessage(
       opened === null
         ? "浏览器阻止了新页面，请允许打开新窗口后重试。"
-        : "Google 地图已在新页面打开。选好位置后复制分享链接，再返回此页面粘贴；卡兔页面会保留。",
+        : "选好位置后请在地图里点“分享 / 复制”，再返回卡兔；卡兔会自动读取并解析链接。",
     );
   };
 
@@ -345,7 +371,7 @@ export function LocationPicker({
             </button>
           </form>
           <p className="mt-2 text-[10px] leading-4 text-slate-400">
-            点击下方打开 Google 地图，长按准确位置后选择“分享 / 复制链接”，再返回本页面粘贴。
+            打开地图后点击准确位置，再点“分享 / 复制”。返回卡兔后会自动读取；如果系统不允许，请长按输入框粘贴。
           </p>
           <button
             type="button"
