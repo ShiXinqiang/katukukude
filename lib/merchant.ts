@@ -98,6 +98,39 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS subtitle VARCHAR(160),
+      ADD COLUMN IF NOT EXISTS original_price NUMERIC(14,2),
+      ADD COLUMN IF NOT EXISTS badge VARCHAR(32),
+      ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS specifications JSONB NOT NULL DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS shipping_fee NUMERIC(14,2) NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS free_shipping BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS service_guarantees JSONB NOT NULL DEFAULT '[]'::jsonb,
+      ADD COLUMN IF NOT EXISTS is_official BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS is_recommended BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS promotion_title VARCHAR(80),
+      ADD COLUMN IF NOT EXISTS promotion_start TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS promotion_end TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS sort_order INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS rejection_reason TEXT,
+      ADD COLUMN IF NOT EXISTS sales_count INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS rating_average NUMERIC(3,2) NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS rating_count INTEGER NOT NULL DEFAULT 0;
+
+    CREATE TABLE IF NOT EXISTS product_media (
+      id TEXT PRIMARY KEY,
+      product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      merchant_id TEXT NOT NULL REFERENCES merchants(id) ON DELETE CASCADE,
+      mime_type VARCHAR(100) NOT NULL,
+      file_name VARCHAR(255) NOT NULL,
+      file_size INTEGER NOT NULL CHECK(file_size > 0 AND file_size <= 8388608),
+      content BYTEA NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS merchant_id TEXT REFERENCES merchants(id) ON DELETE SET NULL;
 
@@ -107,6 +140,10 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       ON merchant_application_documents(user_id, created_at DESC);
     CREATE INDEX IF NOT EXISTS products_merchant_idx
       ON products(merchant_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS products_storefront_idx
+      ON products(status, is_featured DESC, is_recommended DESC, sort_order DESC, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS product_media_product_idx
+      ON product_media(product_id, sort_order, created_at);
     CREATE INDEX IF NOT EXISTS orders_merchant_idx
       ON orders(merchant_id, created_at DESC);
   `);
