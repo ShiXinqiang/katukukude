@@ -19,6 +19,7 @@ import { SearchResultsPage } from "../components/pages/search-page";
 import { ServicePage } from "../components/pages/service-page";
 import { AddressesPage, HomeRoutePage } from "../components/pages/address-pages";
 import { PartnerPage } from "../components/pages/partner-page";
+import { OrdersPage } from "../components/pages/orders-page";
 
 export default function Page(){
  const [view,setView]=useState<View>("home"); const history=useRef<View[]>([]);
@@ -50,7 +51,7 @@ export default function Page(){
   {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
-  {view==="partner"&&<PartnerPage onBack={goBack}/>}
+  {view==="partner"&&<PartnerPage onBack={goBack}/>}\n  {view==="orders"&&<OrdersPage onBack={goBack}/>}
   {showBottomNav&&<BottomNav activeView={activeNav} onNavigate={navigate}/>}
  </div></div>;
 }
