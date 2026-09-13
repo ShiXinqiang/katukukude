@@ -20,13 +20,13 @@ import { AddressesPage, HomeRoutePage } from "../components/pages/address-pages"
 import { PartnerPage } from "../components/pages/partner-page";
 
 export default function Page(){
- const [view,setView]=useState<View>("home"); const [history,setHistory]=useState<View[]>([]);
+ const [view,setView]=useState<View>("home"); const [previousView,setPreviousView]=useState<View>("home");
  const [selectedProductId,setSelectedProductId]=useState(""); const [searchKeyword,setSearchKeyword]=useState("");
- const [serviceName,setServiceName]=useState("外卖"); const [checkoutTotal,setCheckoutTotal]=useState(0);
+ const [serviceName,setServiceName]=useState("外卖"); const [serviceParent,setServiceParent]=useState<string|null>(null); const [checkoutTotal,setCheckoutTotal]=useState(0);
  const [user,setUser]=useState<AuthUser|null>(null); const cartCount=0;
  useEffect(()=>{let active=true;fetch("/api/auth/me",{cache:"no-store",credentials:"include"}).then(r=>r.ok?r.json():null).then(r=>{if(active)setUser(r?.user??null)}).catch(()=>active&&setUser(null));return()=>{active=false}},[]);
- const navigate=(next:View)=>{setHistory(h=>[...h,view]);setView(next);window.scrollTo({top:0,behavior:"smooth"})};
- const goBack=()=>{const next=[...history];setView(next.pop()||"home");setHistory(next)};
+ const navigate=(next:View)=>{if(next===view){setView(next);return;}setPreviousView(view);setView(next);window.scrollTo({top:0,behavior:"smooth"})};
+ const goBack=()=>{const target=previousView;setView(target);setPreviousView("home")};
  const openProduct=(id:string)=>{setSelectedProductId(id);navigate("product")};
  const openSearch=(q:string)=>{setSearchKeyword(q);navigate("search")};
  const openService=(name:string)=>{setServiceName(name);navigate("service")};
@@ -45,7 +45,7 @@ export default function Page(){
   {view==="checkout"&&<CheckoutPage total={checkoutTotal} onBack={goBack}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
-  {view==="service"&&<ServicePage title={serviceName} onBack={goBack} onProduct={openProduct} onService={name=>setServiceName(name)}/>}
+  {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}

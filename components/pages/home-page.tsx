@@ -49,14 +49,19 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const autoLocate = () => {
     if (!navigator.geolocation) return;
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        chooseRegion(`当前位置 · ${coords.latitude.toFixed(3)}, ${coords.longitude.toFixed(3)}`);
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      const fallback = "当前位置 · " + coords.latitude.toFixed(3) + ", " + coords.longitude.toFixed(3);
+      try {
+        const params = new URLSearchParams({ lat: String(coords.latitude), lon: String(coords.longitude) });
+        const response = await fetch("/api/location/reverse?" + params.toString(), { cache: "no-store" });
+        const result = response.ok ? await response.json() : null;
+        chooseRegion(result?.label || fallback);
+      } catch {
+        chooseRegion(fallback);
+      } finally {
         setLocating(false);
-      },
-      () => setLocating(false),
-      { enableHighAccuracy: true, timeout: 12000 }
-    );
+      }
+    }, () => setLocating(false), { enableHighAccuracy: true, timeout: 12000 });
   };
   const clickService = (name: string) => {
     if (name === "到家") return onNavigate("homeRoute");
