@@ -44,7 +44,7 @@ export default function Page(){
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
   {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);navigate("profile")}}/>}
   {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
-  {view==="checkout"&&<CheckoutPage total={checkoutTotal} onBack={goBack}/>}
+  {view==="checkout"&&<CheckoutPage total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
   {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
