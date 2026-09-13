@@ -60,7 +60,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   };
   const clickService = (name: string) => {
     if (name === "到家") return onNavigate("homeRoute");
-    if (name === "好物") return onSearch("好物");
+    if (name === "好物") return onService(name);
     onService(name);
   };
 

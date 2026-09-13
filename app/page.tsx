@@ -29,10 +29,11 @@ export default function Page(){
  const goBack=()=>{const next=[...history];setView(next.pop()||"home");setHistory(next)};
  const openProduct=(id:string)=>{setSelectedProductId(id);navigate("product")};
  const openSearch=(q:string)=>{setSearchKeyword(q);navigate("search")};
+ const openService=(name:string)=>{setServiceName(name);navigate("service")};
  const activeNav:MainTab=(["discover","scan","messages","profile"] as View[]).includes(view)?view as MainTab:"home";
  const showBottomNav=["home","discover","messages","profile","search"].includes(view);
  return <div className="min-h-screen bg-[#dfe6ec]"><div className="relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden bg-[#f4f6f8]">
-  {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={name=>{setServiceName(name);navigate("service")}} cartCount={cartCount} user={user}/>}
+  {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user}/>}
   {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
   {view==="messages"&&<MessagesPage/>}
   {view==="profile"&&<ProfilePage onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);navigate("home")}}/>}
@@ -44,7 +45,7 @@ export default function Page(){
   {view==="checkout"&&<CheckoutPage total={checkoutTotal} onBack={goBack}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
-  {view==="service"&&<ServicePage title={serviceName} onBack={goBack} onProduct={openProduct}/>}
+  {view==="service"&&<ServicePage title={serviceName} onBack={goBack} onProduct={openProduct} onService={name=>setServiceName(name)}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}
