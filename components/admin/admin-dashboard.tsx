@@ -49,7 +49,9 @@ type AdminMerchant = {
 };
 
 type AdminProduct = {
-  id: string; title: string; description: string; category: string;
+  id: string; title: string; subtitle: string | null; description: string; category: string;
+  images: string[]; tags: string[]; specifications: Array<{ name: string; values: string[] }>;
+  shippingFee: string; freeShipping: boolean; serviceGuarantees: string[];
   price: string; originalPrice: string|null; stock: number; status: "draft"|"pending"|"active"|"rejected"|"archived"; badge:string|null; promotionTitle:string|null; promotionStart:string|null; promotionEnd:string|null; isOfficial:boolean; isFeatured:boolean; isRecommended:boolean; sortOrder:number; rejectionReason:string|null;
   createdAt: string; updatedAt: string; merchantId: string; storeNameCn: string;
 };
