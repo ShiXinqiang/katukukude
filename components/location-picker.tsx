@@ -17,12 +17,18 @@ export type LocationPickerResult = {
   mapLink: string;
   latitude: string;
   longitude: string;
+  state?: string;
+  city?: string;
+  township?: string;
 };
 
 type ReverseResponse = {
   label?: string;
   primaryLabel?: string;
   detail?: string;
+  state?: string;
+  city?: string;
+  township?: string;
 };
 
 type ResolveResponse = {
@@ -159,6 +165,9 @@ export function LocationPicker({
         mapLink: createMapLink(latitude, longitude),
         latitude: String(latitude),
         longitude: String(longitude),
+        state: reverse.state,
+        city: reverse.city,
+        township: reverse.township,
       });
     } catch (error) {
       setMessage(getLocationErrorMessage(error));
@@ -218,6 +227,9 @@ export function LocationPicker({
         mapLink: resolved.mapLink || createMapLink(latitude, longitude),
         latitude: String(latitude),
         longitude: String(longitude),
+        state: reverse.state,
+        city: reverse.city,
+        township: reverse.township,
       });
     } catch (error) {
       setMessage(
