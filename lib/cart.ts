@@ -4,3 +4,8 @@ export function readCart():CartItem[]{if(typeof window==="undefined")return[];tr
 export function saveCart(items:CartItem[]){if(typeof window==="undefined")return;localStorage.setItem(KEY,JSON.stringify(items));window.dispatchEvent(new CustomEvent("katu:cart",{detail:items}));}
 export function addProductToCart(product:ProductData,quantity:number,spec="默认规格"){const items=readCart();const key=product.id+"::"+spec;const found=items.find(x=>x.id===key);if(found)found.quantity+=quantity;else items.push({id:key,shop:product.store,title:product.title,spec,unit:product.price,quantity,imageLabel:product.imageLabel});saveCart(items);return items;}
 export function cartQuantity(items=readCart()){return items.reduce((n,x)=>n+x.quantity,0)}
+
+const CHECKOUT_KEY="katu.checkout.v1";
+export function saveCheckout(items:CartItem[]){if(typeof window!=="undefined")localStorage.setItem(CHECKOUT_KEY,JSON.stringify(items));}
+export function readCheckout():CartItem[]{if(typeof window==="undefined")return[];try{const v=JSON.parse(localStorage.getItem(CHECKOUT_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return[]}}
+export function clearPurchasedCart(purchased:CartItem[]){const ids=new Set(purchased.map(x=>x.id));saveCart(readCart().filter(x=>!ids.has(x.id)));if(typeof window!=="undefined")localStorage.removeItem(CHECKOUT_KEY);}
