@@ -21,7 +21,7 @@ export type MerchantProductRecord={id:string;title:string;description:string;cat
 export type ProductData={id:string;title:string;subtitle:string;price:number;original:number;rating:string;distance:string;sales:string;tags:string[];store:string;imageLabel:string};
 export type ServiceItem={name:string;icon:LucideIcon;tone:string};
 export type CartItem={id:string;shop:string;title:string;spec:string;unit:number;quantity:number;imageLabel:string};
-export const formatMoney=(value:number)=>\`Ks \${value.toLocaleString("zh-CN")}\`;
+export const formatMoney=(value:number)=>`Ks ${value.toLocaleString("zh-CN")}`;
 export const services:ServiceItem[]=[
 {name:"外卖",icon:Bike,tone:"bg-[#e5edf2] text-[#6d879e]"},
 {name:"打车",icon:CarFront,tone:"bg-[#f5e8dc] text-[#c78a62]"},

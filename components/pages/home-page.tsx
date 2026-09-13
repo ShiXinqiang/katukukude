@@ -51,7 +51,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        chooseRegion(\`当前位置 · \${coords.latitude.toFixed(3)}, \${coords.longitude.toFixed(3)}\`);
+        chooseRegion(`当前位置 · ${coords.latitude.toFixed(3)}, ${coords.longitude.toFixed(3)}`);
         setLocating(false);
       },
       () => setLocating(false),
@@ -68,7 +68,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
     <main className="min-h-screen overflow-hidden bg-[#f5f7f9] pb-28">
       <header className="sticky top-0 z-30 border-b border-slate-100/80 bg-[#f5f7f9]/95 px-4 pb-3 pt-[max(16px,env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="flex h-11 items-center gap-2">
-          <div className={\`overflow-hidden transition-all duration-300 \${searching ? "w-0 opacity-0" : "w-[132px] opacity-100"}\`}>
+          <div className={`overflow-hidden transition-all duration-300 ${searching ? "w-0 opacity-0" : "w-[132px] opacity-100"}`}>
             <button type="button" onClick={() => setRegionOpen(true)}
               className="flex h-10 w-[132px] items-center gap-1 overflow-hidden text-left text-xs font-semibold text-slate-700">
               <MapPin size={17} className="shrink-0 text-[#6f879d]" />
@@ -102,7 +102,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
           {services.map(({ name, icon: Icon, tone }) => (
             <button type="button" key={name} onClick={() => clickService(name)}
               className="group flex flex-col items-center gap-2 text-[12px] font-medium text-slate-600 active:scale-95">
-              <span className={\`flex size-12 items-center justify-center rounded-2xl transition group-active:scale-95 \${tone}\`}>
+              <span className={`flex size-12 items-center justify-center rounded-2xl transition group-active:scale-95 ${tone}`}>
                 <Icon size={23} strokeWidth={1.8} />
               </span><span>{name}</span>
             </button>
@@ -110,7 +110,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         </div>
       </section>
 
-      <section className={\`mt-4 grid gap-3 px-4 \${user?.role === "merchant" ? "grid-cols-1" : "grid-cols-2"}\`}>
+      <section className={`mt-4 grid gap-3 px-4 ${user?.role === "merchant" ? "grid-cols-1" : "grid-cols-2"}`}>
         {user?.role !== "merchant" && (
           <button type="button" onClick={() => onNavigate("merchantApply")}
             className="relative min-h-[116px] overflow-hidden rounded-3xl bg-[#e7eef3] p-4 text-left active:scale-[.98]">
@@ -179,7 +179,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
               <span className="flex size-10 items-center justify-center rounded-full bg-white"><Navigation size={19}/></span>
               <span><b className="block text-sm">{locating ? "正在获取位置…" : "自动获取当前位置"}</b><span className="mt-1 block text-[11px] text-slate-500">允许定位后自动选择附近地区</span></span>
             </button>
-            <div className="mt-4 grid grid-cols-2 gap-2">{regions.map(item=><button type="button" key={item} onClick={()=>chooseRegion(item)} className={\`rounded-xl border px-3 py-3 text-sm \${region===item?"border-[#7189a1] bg-[#edf2f5] text-[#607a92]":"border-slate-100 text-slate-600"}\`}>{item}</button>)}</div>
+            <div className="mt-4 grid grid-cols-2 gap-2">{regions.map(item=><button type="button" key={item} onClick={()=>chooseRegion(item)} className={`rounded-xl border px-3 py-3 text-sm ${region===item?"border-[#7189a1] bg-[#edf2f5] text-[#607a92]":"border-slate-100 text-slate-600"}`}>{item}</button>)}</div>
             <a href="https://www.google.com/maps" target="_blank" rel="noreferrer" className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"><MapPin size={17}/>在 Google 地图中选择</a>
           </section>
         </div>
