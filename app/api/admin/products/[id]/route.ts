@@ -1,35 +1,4 @@
-import { NextResponse } from "next/server";
-import { getCurrentAdmin } from "../../../../../lib/admin";
-import { ensureMerchantSchema } from "../../../../../lib/merchant";
-
-export const dynamic = "force-dynamic";
-
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  try {
-    const admin = await getCurrentAdmin();
-    if (!admin) return NextResponse.json({ message: "需要超级管理员权限" }, { status: 401 });
-    const body = (await request.json()) as { status?: unknown };
-    if (body.status !== "draft" && body.status !== "active" && body.status !== "archived") {
-      return NextResponse.json({ message: "商品状态无效" }, { status: 400 });
-    }
-    const database = await ensureMerchantSchema();
-    const result = await database.query("UPDATE products SET status=$2, updated_at=NOW() WHERE id=$1 RETURNING id", [params.id, body.status]);
-    if (!result.rows[0]) return NextResponse.json({ message: "商品不存在" }, { status: 404 });
-    return NextResponse.json({ success: true, status: body.status });
-  } catch (error) {
-    return NextResponse.json({ message: "商品状态更新失败" }, { status: 500 });
-  }
-}
-
-export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
-  try {
-    const admin = await getCurrentAdmin();
-    if (!admin) return NextResponse.json({ message: "需要超级管理员权限" }, { status: 401 });
-    const database = await ensureMerchantSchema();
-    const result = await database.query("DELETE FROM products WHERE id=$1 RETURNING id", [params.id]);
-    if (!result.rows[0]) return NextResponse.json({ message: "商品不存在" }, { status: 404 });
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ message: "删除商品失败" }, { status: 500 });
-  }
-}
+import {NextResponse} from "next/server";import {getCurrentAdmin} from "../../../../../lib/admin";import {cleanText,ensureMerchantSchema} from "../../../../../lib/merchant";export const dynamic="force-dynamic";
+export async function PATCH(request:Request,{params}:{params:{id:string}}){try{if(!await getCurrentAdmin())return NextResponse.json({message:"需要超级管理员权限"},{status:401});const b=await request.json() as Record<string,unknown>,db=await ensureMerchantSchema();const cur=await db.query<any>("SELECT * FROM products WHERE id=$1",[params.id]);if(!cur.rows[0])return NextResponse.json({message:"商品不存在"},{status:404});const x=cur.rows[0],status=b.status===undefined?x.status:String(b.status),allowed=["draft","pending","active","rejected","archived"];if(!allowed.includes(status))return NextResponse.json({message:"商品状态无效"},{status:400});const reason=cleanText(b.rejectionReason,1000);if(status==="rejected"&&!reason)return NextResponse.json({message:"拒绝商品必须填写原因"},{status:400});const badge=b.badge===undefined?x.badge:cleanText(b.badge,32)||null,promotion=b.promotionTitle===undefined?x.promotion_title:cleanText(b.promotionTitle,80)||null,sort=b.sortOrder===undefined?x.sort_order:Number(b.sortOrder);if(!Number.isInteger(sort)||sort< -9999||sort>9999)return NextResponse.json({message:"排序值无效"},{status:400});
+await db.query(`UPDATE products SET status=$2,badge=$3,is_official=$4,is_featured=$5,is_recommended=$6,promotion_title=$7,promotion_start=$8,promotion_end=$9,sort_order=$10,rejection_reason=$11,updated_at=NOW() WHERE id=$1`,[params.id,status,badge,b.isOfficial===undefined?x.is_official:b.isOfficial===true,b.isFeatured===undefined?x.is_featured:b.isFeatured===true,b.isRecommended===undefined?x.is_recommended:b.isRecommended===true,promotion,b.promotionStart===undefined?x.promotion_start:b.promotionStart||null,b.promotionEnd===undefined?x.promotion_end:b.promotionEnd||null,sort,status==="rejected"?reason:null]);return NextResponse.json({success:true,status})}catch(e){console.error(e);return NextResponse.json({message:"商品配置更新失败"},{status:500})}}
+export async function DELETE(_r:Request,{params}:{params:{id:string}}){try{if(!await getCurrentAdmin())return NextResponse.json({message:"需要超级管理员权限"},{status:401});const db=await ensureMerchantSchema(),r=await db.query("DELETE FROM products WHERE id=$1 RETURNING id",[params.id]);if(!r.rows[0])return NextResponse.json({message:"商品不存在"},{status:404});return NextResponse.json({success:true})}catch{return NextResponse.json({message:"删除商品失败"},{status:500})}}
