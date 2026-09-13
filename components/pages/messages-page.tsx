@@ -54,6 +54,8 @@ export function MessagesPage() {
   const [messages, setMessages] = useState<MessageRecord[]>([]);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeType,setActiveType]=useState<string>("all");
+  const [menuOpen,setMenuOpen]=useState(false);
 
   useEffect(() => {
     let active = true;
@@ -119,6 +121,9 @@ export function MessagesPage() {
     });
   };
 
+  const visible=activeType==="all"?messages:messages.filter(x=>getCategoryType(x.type)===activeType);
+  const markAll=async()=>{const unread=messages.filter(x=>!x.readAt);setMessages(x=>x.map(m=>({...m,readAt:m.readAt||new Date().toISOString()})));setMenuOpen(false);await Promise.all(unread.map(m=>fetch("/api/messages",{method:"PATCH",headers:{"Content-Type":"application/json"},credentials:"include",body:JSON.stringify({id:m.id})})));};
+
   return (
     <main className="min-h-screen overflow-hidden pb-28">
       <header className="px-4 pb-2 pt-7">
@@ -128,11 +133,12 @@ export function MessagesPage() {
           </h1>
           <button
             type="button"
+            onClick={()=>setMenuOpen(!menuOpen)}
             className="flex size-9 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
           >
             <MoreHorizontal size={19} />
           </button>
-        </div>
+        </div>{menuOpen&&<div className="mt-3 flex justify-end"><button type="button" onClick={markAll} className="rounded-full bg-white px-4 py-2 text-xs text-slate-600 shadow-sm">全部标为已读</button></div>}
       </header>
 
       <section className="mt-5 grid grid-cols-3 gap-3 px-4">
@@ -144,7 +150,8 @@ export function MessagesPage() {
             <button
               type="button"
               key={title}
-              className="flex flex-col items-center rounded-2xl bg-white py-4 shadow-sm"
+              onClick={()=>setActiveType(activeType===type?"all":type)}
+              className={`flex flex-col items-center rounded-2xl py-4 shadow-sm ${activeType===type?"ring-2 ring-[#7189a1] bg-[#f7f9fa]":"bg-white"}`}
             >
               <span className={`relative flex size-14 items-center justify-center rounded-full ${tone}`}>
                 <Icon size={24} strokeWidth={1.8} />
@@ -176,7 +183,7 @@ export function MessagesPage() {
             title="登录后查看消息"
             description="登录后可接收系统通知和订单进度"
           />
-        ) : messages.length === 0 ? (
+        ) : visible.length === 0 ? (
           <EmptyMessages
             icon={Inbox}
             title="暂无消息"
@@ -184,7 +191,7 @@ export function MessagesPage() {
           />
         ) : (
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-            {messages.map((message, index) => {
+            {visible.map((message, index) => {
               const type = getCategoryType(message.type);
               const Icon =
                 type === "promotion"
@@ -205,7 +212,7 @@ export function MessagesPage() {
                   key={message.id}
                   onClick={() => !message.readAt && markRead(message.id)}
                   className={`flex w-full items-center gap-3 px-3.5 py-4 text-left ${
-                    index !== messages.length - 1
+                    index !== visible.length - 1
                       ? "border-b border-slate-100"
                       : ""
                   }`}
