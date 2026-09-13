@@ -7,7 +7,8 @@ import {
   Star, Store, UsersRound, Navigation, X
 } from "lucide-react";
 import type { AuthUser, View } from "../../lib/data";
-import { catalogProducts, formatMoney, services } from "../../lib/data";
+import type { ProductData } from "../../lib/data";
+import { formatMoney, services } from "../../lib/data";
 import { readRegion, saveRegion } from "../../lib/local-profile";
 import { SectionHeader, SkeletonImage } from "../ui";
 import { LocationPicker, type LocationPickerResult } from "../location-picker";
@@ -27,9 +28,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const [region, setRegion] = useState("仰光 Yangon");
   const [regionOpen, setRegionOpen] = useState(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
+  const [products, setProducts] = useState<ProductData[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setRegion(readRegion()), []);
+  useEffect(() => { let active=true; fetch("/api/catalog",{cache:"no-store"}).then(r=>r.json()).then(data=>{if(active)setProducts(data.products||[])}).catch(()=>active&&setProducts([])).finally(()=>active&&setProductsLoading(false)); return()=>{active=false}; }, []);
 
   const beginSearch = () => {
     setSearching(true);
@@ -130,7 +134,9 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
       <section className="mt-7">
         <div className="px-4"><SectionHeader title="热门推荐" onViewAll={() => onSearch("热门")} /></div>
         <div className="scrollbar-hidden flex snap-x gap-3 overflow-x-auto px-4 pb-2">
-          {catalogProducts.slice(0,4).map(product => (
+          {productsLoading && [1,2].map(item => <div key={item} className="h-[210px] min-w-[238px] animate-pulse rounded-3xl bg-slate-200" />)}
+          {!productsLoading && products.length === 0 && <div className="w-full rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">暂无已上架商品，商家发布后会显示在这里</div>}
+          {products.slice(0,4).map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="min-w-[238px] snap-start overflow-hidden rounded-3xl bg-white text-left shadow-sm">
               <SkeletonImage className="h-36 rounded-none" label={product.imageLabel} />
@@ -149,7 +155,9 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
       <section className="mt-6 px-4">
         <SectionHeader title="猜你喜欢" onViewAll={() => onSearch("好物")} />
         <div className="space-y-3">
-          {catalogProducts.map(product => (
+          {productsLoading && [1,2,3].map(item => <div key={item} className="h-[128px] animate-pulse rounded-3xl bg-slate-200" />)}
+          {!productsLoading && products.length === 0 && <div className="rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">还没有可购买的商品</div>}
+          {products.map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="flex w-full gap-3 rounded-3xl bg-white p-2.5 text-left shadow-sm active:scale-[.99]">
               <SkeletonImage className="h-[108px] w-[112px] shrink-0 rounded-2xl" label={product.imageLabel}/>
