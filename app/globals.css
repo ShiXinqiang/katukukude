@@ -404,3 +404,23 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   color: rgb(214 214 222) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
 }
+
+
+:root[data-katu-theme="dark"] .katu-app-shell :where(
+  [class~="bg-[#e5edf2]"],
+  [class~="bg-[#f5e8dc]"],
+  [class~="bg-[#e5eee8]"],
+  [class~="bg-[#eee8dc]"],
+  [class~="bg-[#e4edf1]"],
+  [class~="bg-[#e7edf4]"],
+  [class~="bg-[#f0e7e2]"],
+  [class~="bg-[#e9edf0]"],
+  [class~="bg-[#e7eef0]"],
+  [class~="bg-[#edf0f2]"],
+  [class~="bg-[#e7eef3]"],
+  [class~="bg-[#f3eae3]"]
+) {
+  background: rgba(255,255,255,.075) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  color: rgb(214 214 222) !important;
+}
