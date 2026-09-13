@@ -11,6 +11,8 @@ export function DiscoverPage({
   onProduct: (id: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState("关注");
+  const [searching,setSearching]=useState(false); const [query,setQuery]=useState("");
+  const posts=discoverPosts.filter((p:any)=>(activeTab==="广场"||activeTab==="关注"||p.category===activeTab)&&(!query.trim()||String(p.title).toLowerCase().includes(query.trim().toLowerCase())));
 
   return (
     <main className="min-h-screen overflow-hidden pb-28">
@@ -21,11 +23,14 @@ export function DiscoverPage({
           </h1>
           <button
             type="button"
+            onClick={()=>setSearching(!searching)}
             className="flex size-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm"
           >
             <Search size={20} />
           </button>
         </div>
+
+        {searching&&<div className="mt-4 flex items-center rounded-full bg-white px-3 py-2.5 shadow-sm"><Search size={16} className="text-slate-400"/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索发现内容" className="ml-2 flex-1 bg-transparent text-sm outline-none"/></div>}
 
         <div className="scrollbar-hidden mt-5 flex gap-6 overflow-x-auto border-b border-slate-200">
           {discoverTabs.map((tab) => (
@@ -48,7 +53,7 @@ export function DiscoverPage({
         </div>
       </header>
 
-      {discoverPosts.length === 0 ? (
+      {posts.length === 0 ? (
         <section className="mx-4 mt-16 flex flex-col items-center rounded-2xl bg-white px-5 py-12 text-center shadow-sm">
           <span className="flex size-16 items-center justify-center rounded-full bg-[#edf1f3] text-[#8195a7]">
             <Compass size={31} strokeWidth={1.4} />
@@ -62,7 +67,7 @@ export function DiscoverPage({
         </section>
       ) : (
         <section className="mt-4 columns-2 gap-3 px-3">
-          {discoverPosts.map((post) => (
+          {posts.map((post:any) => (
           <article
             key={post.id}
             className="mb-3 break-inside-avoid overflow-hidden rounded-2xl bg-white shadow-sm"
