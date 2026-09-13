@@ -96,21 +96,37 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   box-shadow: 0 12px 28px rgba(var(--katu-accent),.34), inset 0 1px 0 rgba(255,255,255,.3);
 }
 
-/* 将旧页面的纯白卡片统一提升为可全局调整的玻璃材质 */
-main :where(section, article, div)[class~="bg-white"],
-main :where(button)[class~="bg-white"] {
+/* 分层玻璃材质：只处理卡片表面，避免嵌套内容重复透明造成重叠 */
+main[class~="bg-[#f5f7f9]"],
+main[class~="bg-[#f4f6f8]"],
+main[class~="bg-[#eef2f5]"] { background: transparent !important; }
+main :where(section,article)[class~="bg-white"],
+main div[class~="bg-white"][class*="rounded"] {
   background-color: rgba(var(--katu-glass),var(--katu-glass-alpha)) !important;
-  border-color: rgba(255,255,255,var(--katu-border-alpha));
+  border: 1px solid rgba(255,255,255,var(--katu-border-alpha));
   -webkit-backdrop-filter: blur(var(--katu-blur)) saturate(140%);
   backdrop-filter: blur(var(--katu-blur)) saturate(140%);
 }
+main button[class~="bg-white"][class*="rounded"] {
+  background-color: rgba(255,255,255,.76) !important;
+  border-color: rgba(255,255,255,.72);
+  -webkit-backdrop-filter: blur(14px) saturate(135%);
+  backdrop-filter: blur(14px) saturate(135%);
+}
 main :where(section,article)[class*="shadow"],
-main :where(div)[class*="shadow-sm"] { box-shadow: var(--katu-shadow) !important; }
+main div[class~="bg-white"][class*="shadow"] { box-shadow: var(--katu-shadow) !important; }
 main > header[class*="sticky"] {
-  background: rgba(244,247,249,.72) !important;
-  border-color: rgba(255,255,255,.7) !important;
+  background: rgba(244,247,249,.78) !important;
+  border-color: rgba(255,255,255,.74) !important;
+  box-shadow: 0 8px 30px rgba(66,82,98,.07);
   -webkit-backdrop-filter: blur(24px) saturate(155%);
   backdrop-filter: blur(24px) saturate(155%);
+}
+div[class*="fixed"][class*="inset-0"] > section[class~="bg-white"] {
+  background: rgba(252,253,254,.9) !important;
+  border: 1px solid rgba(255,255,255,.9);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  backdrop-filter: blur(30px) saturate(150%);
 }
 input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
 @media (prefers-reduced-motion: reduce) {
