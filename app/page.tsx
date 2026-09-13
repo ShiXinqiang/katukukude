@@ -20,12 +20,14 @@ import { ServicePage } from "../components/pages/service-page";
 import { AddressesPage, HomeRoutePage } from "../components/pages/address-pages";
 import { PartnerPage } from "../components/pages/partner-page";
 import { OrdersPage } from "../components/pages/orders-page";
+import { FavoritesPage, LikesPage, SettingsPage } from "../components/pages/account-pages";
 
 export default function Page(){
  const [view,setView]=useState<View>("home"); const history=useRef<View[]>([]);
  const [selectedProductId,setSelectedProductId]=useState(""); const [searchKeyword,setSearchKeyword]=useState("");
  const [serviceName,setServiceName]=useState("外卖"); const [serviceParent,setServiceParent]=useState<string|null>(null); const [checkoutTotal,setCheckoutTotal]=useState(0);
  const [user,setUser]=useState<AuthUser|null>(null); const [cartCount,setCartCount]=useState(0);
+ useEffect(()=>{try{const mode=localStorage.getItem("katu.theme.mode")||"balanced",accent=localStorage.getItem("katu.theme.accent")||"106 132 157",theme=mode==="clear"?[".58","26px"]:mode==="solid"?[".86","16px"]:[".72","22px"];document.documentElement.style.setProperty("--katu-glass-alpha",theme[0]);document.documentElement.style.setProperty("--katu-blur",theme[1]);document.documentElement.style.setProperty("--katu-accent",accent)}catch{}},[]);
  useEffect(()=>{setCartCount(cartQuantity());const sync=()=>setCartCount(cartQuantity());window.addEventListener("katu:cart",sync);return()=>window.removeEventListener("katu:cart",sync)},[]);
  useEffect(()=>{let active=true;fetch("/api/auth/me",{cache:"no-store",credentials:"include"}).then(r=>r.ok?r.json():null).then(r=>{if(active)setUser(r?.user??null)}).catch(()=>active&&setUser(null));return()=>{active=false}},[]);
  const navigate=(next:View)=>{if(next===view)return;history.current.push(view);setView(next);window.scrollTo({top:0,behavior:"smooth"})};
@@ -54,6 +56,9 @@ export default function Page(){
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}
   {view==="orders"&&<OrdersPage onBack={goBack}/>}
+  {view==="favorites"&&<FavoritesPage onBack={goBack} onProduct={openProduct}/>}
+  {view==="likes"&&<LikesPage onBack={goBack} onProduct={openProduct}/>}
+  {view==="settings"&&<SettingsPage onBack={goBack} onNavigate={navigate}/>}
   {showBottomNav&&<BottomNav activeView={activeNav} onNavigate={navigate}/>}
  </div></div>;
 }
