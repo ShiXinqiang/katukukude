@@ -37,7 +37,7 @@ export function BottomNav({
               onClick={() => onNavigate("scan")}
               className="flex min-w-[60px] flex-col items-center gap-1 text-[10px] text-slate-500"
             >
-              <span className="katu-floating-button -mt-8 flex size-[58px] items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-[#8199ae] to-[#5e7891] text-white ring-4 ring-white/65 backdrop-blur-xl">
+              <span className="katu-floating-button katu-primary -mt-8 flex size-[58px] items-center justify-center rounded-full border border-white/40 text-white ring-4 ring-[#fff4e9]/70 backdrop-blur-xl">
                 <Icon size={25} strokeWidth={1.8} />
               </span>
               <span>扫一扫</span>
