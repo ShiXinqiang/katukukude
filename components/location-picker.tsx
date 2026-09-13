@@ -244,12 +244,14 @@ export function LocationPicker({
 
     const handleVisibility = () => {
       if (document.visibilityState !== "visible" || locating || resolving) return;
-      void navigator.clipboard?.readText().then((value) => {
+      const clipboard = navigator.clipboard;
+      if (!clipboard) return;
+      void clipboard.readText().then((value) => {
         const copied = value.trim();
         if (
           !copied ||
           copied === link ||
-          !/(maps\\.app\\.goo\\.gl|goo\\.gl|google\\.[^/\\s]+\\/maps)/i.test(copied)
+          !/(maps\.app\.goo\.gl|goo\.gl|google\.[^/\s]+\/maps)/i.test(copied)
         ) {
           return;
         }
@@ -257,7 +259,7 @@ export function LocationPicker({
         setMessage("检测到刚刚复制的地图链接，正在自动解析…");
         void resolveManualLink(copied);
       }).catch(() => undefined);
-    };
+    };;
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
