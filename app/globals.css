@@ -424,3 +424,52 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   border-color: rgba(255,255,255,.12) !important;
   color: rgb(214 214 222) !important;
 }
+
+
+/* 搜索容器只保留外层圆角，内部输入不再绘制第二层边框 */
+:root[data-katu-theme] .katu-app-shell form[class*="items-center"] > input:not([type="checkbox"]):not([type="radio"]),
+:root[data-katu-theme] .katu-app-shell form[class*="rounded"] input[class*="bg-transparent"] {
+  width: 100%;
+  height: 100%;
+  min-height: 0 !important;
+  padding: 0 4px !important;
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:root[data-katu-theme] .katu-app-shell form[class*="items-center"] > input:focus,
+:root[data-katu-theme] .katu-app-shell form[class*="rounded"] input[class*="bg-transparent"]:focus {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* 深色模式遗留深色文字统一提升对比度，保留价格、警告和删除色 */
+:root[data-katu-theme="dark"] .katu-app-shell :where(
+  [class~="text-[#607d96]"],
+  [class~="text-[#607992]"],
+  [class~="text-[#607992]"],
+  [class~="text-[#6f879d]"],
+  [class~="text-[#647f98]"],
+  [class~="text-[#7890a6]"],
+  [class~="text-[#667f99]"],
+  [class~="text-[#7189a1]"],
+  [class~="text-[#667f98]"],
+  [class~="text-[#6e879e]"],
+  [class~="text-[#6d879e]"],
+  [class~="text-[#c78a62]"],
+  [class~="text-[#71917d]"],
+  [class~="text-[#a78c63]"],
+  [class~="text-[#66879c]"],
+  [class~="text-[#7189a3]"],
+  [class~="text-[#ab7d6d]"],
+  [class~="text-[#70808e]"],
+  [class~="text-[#648890]"],
+  [class~="text-[#7c8992]"]
+) {
+  color: rgb(210 210 220) !important;
+}
