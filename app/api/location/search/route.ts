@@ -23,6 +23,7 @@ export async function GET(request: Request) {
     endpoint.searchParams.set("q", query);
     const response = await fetch(endpoint, {
       cache: "no-store",
+      signal: AbortSignal.timeout(10000),
       headers: { "User-Agent": "Katu merchant address lookup" },
     });
     if (!response.ok) {

@@ -156,7 +156,7 @@ export async function getCurrentMerchant(): Promise<{
   merchant: MerchantRecord;
 } | null> {
   const user = await getCurrentUser();
-  if (!user || user.role !== "merchant" || user.status === "suspended") return null;
+  if (!user || !["merchant", "admin"].includes(user.role) || user.status === "suspended") return null;
 
   const database = await ensureMerchantSchema();
   const result = await database.query<{

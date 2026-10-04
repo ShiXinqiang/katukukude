@@ -575,8 +575,10 @@ input,textarea,select { caret-color: rgb(var(--katu-accent-strong)); }
   animation: katuSoftPulse 3.2s ease-in-out infinite;
 }
 
-:root[data-katu-theme] .katu-app-shell button {
+:root[data-katu-theme] .katu-app-shell button:not(.fixed):not(.absolute) {
   position: relative;
+}
+:root[data-katu-theme] .katu-app-shell button {
   isolation: isolate;
   -webkit-tap-highlight-color: transparent;
   transition:

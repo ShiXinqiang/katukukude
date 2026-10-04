@@ -74,13 +74,22 @@ export async function POST(
         return NextResponse.json({ message: "订单不存在" }, { status: 404 });
       }
 
+      if (order.status === "cancelled" || order.paymentStatus === "refunded") {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ message: "已取消或退款的订单不能确认收款" }, { status: 409 });
+      }
+      if (order.paymentStatus === "paid") {
+        await client.query("ROLLBACK");
+        return NextResponse.json({ order, notificationSent: false });
+      }
+
       const expectedCents = Math.round(Number(order.totalAmount) * 100);
       const actualCents = Math.round(amount * 100);
       if (!Number.isFinite(expectedCents) || expectedCents !== actualCents) {
         await client.query("ROLLBACK");
         return NextResponse.json(
           {
-            message: `付款金额不匹配，应付 ¥${Number(order.totalAmount).toFixed(2)}`,
+            message: `付款金额不匹配，应付 Ks ${Number(order.totalAmount).toFixed(2)}`,
           },
           { status: 400 },
         );
@@ -115,7 +124,7 @@ export async function POST(
           [
             randomUUID(),
             order.userId,
-            `订单 ${order.orderNo} 已确认收款 ¥${amount.toFixed(2)}。`,
+            `订单 ${order.orderNo} 已确认收款 Ks ${amount.toFixed(2)}。`,
           ],
         );
       }

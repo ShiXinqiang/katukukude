@@ -25,12 +25,14 @@ import type {
   MerchantRecord,
 } from "../../lib/data";
 
+import { orderLabels } from "../../lib/order-rules";
+
 type Section = "overview" | "products" | "orders" | "store";
 type MerchantOrder = {
   id: string; orderNo: string; status: string; paymentStatus: string;
   totalAmount: string; displayName: string | null; username: string | null;
   shippingName: string | null; shippingPhone: string | null;
-  shippingAddress: string | null; createdAt: string;
+  shippingAddress: string | null; createdAt: string; items: {title:string;spec:string;quantity:number}[];
 };
 
 const nav = [
@@ -105,6 +107,15 @@ export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant
     } catch (error) { setMessage(getMessage(error)); } finally { setLoading(""); }
   };
 
+  const updateOrder = async (id: string, action: string) => {
+    setLoading(id); setMessage("");
+    try {
+      await requestJson(`/api/merchant/orders/${id}`, {method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({action})});
+      await loadOrders();
+      setMessage(action === "accept" ? "已接单，请准备商品或服务" : "已通知顾客发货或服务开始");
+    } catch(error) { setMessage(getMessage(error)); } finally { setLoading(""); }
+  };
+
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     window.location.assign("/");
@@ -156,7 +167,7 @@ export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant
           <section>
             <div><h1 className="text-xl font-bold">店铺订单</h1><p className="mt-1 text-xs text-slate-400">只显示归属于当前店铺的真实订单</p></div>
             <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-sm">
-              {loading === "orders" ? <LoadingRows /> : orders.length === 0 ? <Empty title="暂无订单" description="顾客下单后会显示在这里。" /> : <div className="divide-y divide-slate-100">{orders.map((order) => <div key={order.id} className="p-4"><div className="flex justify-between gap-3"><div><p className="text-sm font-semibold">{order.orderNo}</p><p className="mt-1 text-xs text-slate-400">{order.displayName || order.username || "顾客"} · {new Date(order.createdAt).toLocaleString("zh-CN")}</p></div><p className="text-sm font-bold text-[#b47763]">Ks {Number(order.totalAmount).toLocaleString("zh-CN")}</p></div><div className="mt-3 rounded-xl bg-[#f6f8f9] p-3 text-xs text-slate-500"><p>{order.shippingName || "未填写收货人"} · {order.shippingPhone || "未填写电话"}</p><p className="mt-1 text-slate-400">{order.shippingAddress || "未填写配送地址"}</p></div></div>)}</div>}
+              {loading === "orders" ? <LoadingRows /> : orders.length === 0 ? <Empty title="暂无订单" description="顾客下单后会显示在这里。" /> : <div className="divide-y divide-slate-100">{orders.map((order) => <div key={order.id} className="p-4"><div className="flex justify-between gap-3"><div><p className="text-sm font-semibold">{order.orderNo}</p><p className="mt-1 text-xs text-slate-400">{order.displayName || order.username || "顾客"} · {new Date(order.createdAt).toLocaleString("zh-CN")}</p></div><p className="text-sm font-bold text-[#b47763]">Ks {Number(order.totalAmount).toLocaleString("zh-CN")}</p></div><div className="mt-3 rounded-xl bg-[#f6f8f9] p-3 text-xs text-slate-500"><p>{order.shippingName || "未填写收货人"} · {order.shippingPhone || "未填写电话"}</p><p className="mt-1 text-slate-400">{order.shippingAddress || "未填写配送地址"}</p></div><div className="mt-3 space-y-2 text-xs">{Array.isArray(order.items)&&order.items.map((item,i)=><p key={i}>{item.title} · {item.spec} × {item.quantity}</p>)}</div><div className="mt-3 flex items-center justify-between gap-3"><span className="text-xs text-slate-500">{orderLabels[order.status]||order.status}</span>{order.paymentStatus === "paid" && ["paid","processing"].includes(order.status) && <button disabled={!!loading} onClick={()=>void updateOrder(order.id,order.status === "paid" ? "accept" : "ship")} className="rounded-full bg-[#7189a1] px-4 py-2 text-xs text-white disabled:opacity-50">{loading===order.id?"处理中…":order.status==="paid"?"接单":"确认发货 / 开始服务"}</button>}</div></div>)}</div>}
             </div>
           </section>
         )}

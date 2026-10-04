@@ -26,6 +26,9 @@ export function getDatabase() {
           : undefined,
       options: `-c search_path=\"${schema}\",public`,
       max: 5,
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+      query_timeout: 20000,
     });
   }
 

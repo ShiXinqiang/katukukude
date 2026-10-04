@@ -147,6 +147,7 @@ export async function GET(request: Request) {
 
     const response = await fetch(endpoint, {
       cache: "no-store",
+      signal: AbortSignal.timeout(10000),
       headers: { "User-Agent": "Katu local-life app location lookup" }
     });
     if (!response.ok) return NextResponse.json({ error: "geocoder_unavailable" }, { status: 502 });
