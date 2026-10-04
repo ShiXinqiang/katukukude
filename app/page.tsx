@@ -25,6 +25,7 @@ import { FavoritesPage, LikesPage, SettingsPage } from "../components/pages/acco
 export default function Page(){
  const [view,setView]=useState<View>("home"); const history=useRef<View[]>([]);
  const [selectedProductId,setSelectedProductId]=useState(""); const [searchKeyword,setSearchKeyword]=useState("");
+ const [ordersFilter,setOrdersFilter]=useState("all");
  const [serviceName,setServiceName]=useState("外卖"); const [serviceParent,setServiceParent]=useState<string|null>(null); const [checkoutTotal,setCheckoutTotal]=useState(0);
  const [user,setUser]=useState<AuthUser|null>(null); const [cartCount,setCartCount]=useState(0);
  useEffect(()=>{try{const mode=localStorage.getItem("katu.theme.mode")||"balanced",surface=localStorage.getItem("katu.theme.surface")==="dark"?"dark":"light",theme=mode==="clear"?[".58","26px"]:mode==="solid"?[".86","16px"]:[".72","22px"];document.documentElement.dataset.katuTheme=surface;document.documentElement.style.setProperty("--katu-glass-alpha",theme[0]);document.documentElement.style.setProperty("--katu-blur",theme[1]);localStorage.removeItem("katu.theme.accent")}catch{}},[]);
@@ -42,20 +43,20 @@ export default function Page(){
   {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user}/>}
   {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
   {view==="messages"&&<MessagesPage/>}
-  {view==="profile"&&<ProfilePage onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);history.current=[];replaceView("home")}}/>}
+  {view==="profile"&&<ProfilePage onOrders={filter=>{setOrdersFilter(filter);navigate("orders")}} onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);history.current=[];replaceView("home")}}/>}
   {view==="product"&&<ProductPage productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
   {view==="publish"&&<PublishPage onBack={goBack}/>}
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
   {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);history.current=history.current.filter(x=>x!=="login");replaceView("profile")}}/>}
   {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
-  {view==="checkout"&&<CheckoutPage onOrders={()=>{history.current=["profile"];replaceView("orders")}} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
+  {view==="checkout"&&<CheckoutPage onOrders={()=>{setOrdersFilter("all");history.current=["profile"];replaceView("orders")}} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
   {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}
-  {view==="orders"&&<OrdersPage onBack={goBack}/>}
+  {view==="orders"&&<OrdersPage initialFilter={ordersFilter} onBack={goBack}/>}
   {view==="favorites"&&<FavoritesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="likes"&&<LikesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="settings"&&<SettingsPage onBack={goBack} onNavigate={navigate}/>}
