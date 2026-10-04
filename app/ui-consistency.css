@@ -96,3 +96,6 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 
 :root[data-katu-theme] .katu-site-background { background: var(--katu-page) !important; }
 :root[data-katu-theme] .katu-app-shell .katu-scan-dialog > section { background: var(--katu-dialog) !important; max-height: calc(100dvh - 32px); overflow-y: auto; padding-bottom: max(20px,env(safe-area-inset-bottom)); }
+
+.katu-dashboard .katu-dialog-close { display: inline-flex; flex: 0 0 40px; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 50%; color: #475569; background: #f1f5f9; }
+.katu-dashboard-dialog :where(input,textarea,select):focus-visible { outline: 2px solid #627b94; outline-offset: 2px; }
