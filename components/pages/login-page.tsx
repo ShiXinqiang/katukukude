@@ -93,59 +93,59 @@ export function LoginPage({
 
       <form className="mt-10 space-y-3" onSubmit={submit}>
         {isRegister && (
-          <label className="flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
+          <label className="katu-input-group flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
             <UserRound size={19} className="mr-3 text-slate-400" />
             <input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder="显示名称（可选）"
+              aria-label="显示名称" placeholder="显示名称（可选）"
               maxLength={80}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
           </label>
         )}
 
-        <label className="flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
+        <label className="katu-input-group flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
           <UserRound size={19} className="mr-3 text-slate-400" />
           <input
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
-            placeholder="请输入账号"
+            aria-label="账号" placeholder="请输入账号"
             maxLength={64}
             required
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
           />
         </label>
 
-        <label className="flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
+        <label className="katu-input-group flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
           <LockKeyhole size={19} className="mr-3 text-slate-400" />
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            type="password"
+            aria-label={isRegister ? "设置密码" : "密码"} type="password"
             autoComplete={isRegister ? "new-password" : "current-password"}
             placeholder={isRegister ? "设置密码（至少 8 位）" : "请输入密码"}
             minLength={8}
             maxLength={128}
             required
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
           />
         </label>
 
         {isRegister && (
-          <label className="flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
+          <label className="katu-input-group flex items-center rounded-2xl bg-[#f5f7f8] px-4 py-4">
             <LockKeyhole size={19} className="mr-3 text-slate-400" />
             <input
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               type="password"
               autoComplete="new-password"
-              placeholder="再次确认密码"
+              aria-label="确认密码" placeholder="再次确认密码"
               minLength={8}
               maxLength={128}
               required
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
             />
           </label>
         )}
@@ -180,7 +180,7 @@ export function LoginPage({
         <button
           type="button"
           onClick={() => setAgreed((value) => !value)}
-          className="mx-auto mt-9 flex items-center gap-2 text-[11px] text-slate-400"
+          className="mx-auto mt-9 flex flex-wrap items-center justify-center gap-x-1.5 gap-y-2 text-[11px] text-slate-400"
         >
           <span
             className={`flex size-4 items-center justify-center rounded border ${

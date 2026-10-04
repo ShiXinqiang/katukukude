@@ -133,6 +133,7 @@ export function MessagesPage() {
           </h1>
           <button
             type="button"
+            aria-label="消息操作"
             onClick={()=>setMenuOpen(!menuOpen)}
             className="flex size-9 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm"
           >

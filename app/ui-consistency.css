@@ -1,0 +1,95 @@
+/* Shared typography and geometry. Surfaces remain theme-specific. */
+body, button, input, textarea, select,
+.katu-app-shell, .katu-app-shell :where(button,input,textarea,select) {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Noto Sans Myanmar", "Myanmar Text", "Pyidaungsu", Arial, sans-serif;
+  font-style: normal;
+  font-synthesis: none;
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-wrap: break-word; }
+button, a, input, select, textarea { touch-action: manipulation; }
+input, textarea, select { min-width: 0; max-width: 100%; }
+:where(button,label,a) > svg { flex-shrink: 0; }
+:where(.katu-app-shell,.katu-dashboard) :where(h1,h2,h3,p,b,strong,small,span,label,button,a) { font-style: normal; }
+:where(.katu-app-shell,.katu-dashboard) :where(p,h1,h2,h3) { overflow-wrap: anywhere; }
+:where(.katu-app-shell,.katu-dashboard) .min-h-screen { min-height: 100dvh; }
+:where(.katu-app-shell,.katu-dashboard) :where(button,a):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+:root[data-katu-theme] .katu-app-shell button:active,
+:root[data-katu-theme] .katu-app-shell button:hover { scale: none; rotate: none; }
+:root[data-katu-theme] .katu-app-shell .katu-floating-nav { animation: none; }
+:root[data-katu-theme] .katu-app-shell button:not(:disabled):active { filter: brightness(.94); }
+:root[data-katu-theme] .katu-app-shell :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]) {
+  color: rgb(var(--katu-text)) !important;
+  background: var(--katu-control) !important;
+  border: 1px solid var(--katu-border) !important;
+  border-radius: 14px !important;
+  padding: 11px 12px !important;
+  line-height: 1.6;
+  min-height: 46px;
+  box-shadow: none !important;
+}
+:root[data-katu-theme] .katu-app-shell :is(input,textarea,select):focus-visible {
+  outline: 2px solid rgb(var(--katu-text) / .5) !important;
+  outline-offset: 2px;
+}
+:root[data-katu-theme] .katu-app-shell .katu-search-form,
+:root[data-katu-theme] .katu-app-shell .katu-input-group {
+  min-width: 0;
+  background: var(--katu-dialog) !important;
+  border: 1px solid var(--katu-border);
+  box-shadow: none !important;
+  transform: none;
+}
+:root[data-katu-theme] body .katu-app-shell :is(.katu-search-form,.katu-input-group) input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]) {
+  min-width: 0;
+  width: 0;
+  flex: 1 1 0%;
+  min-height: 32px !important;
+  height: auto;
+  padding: 2px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+:root[data-katu-theme] .katu-app-shell :is(.katu-search-form,.katu-input-group):focus-within {
+  outline: 2px solid rgb(var(--katu-text) / .35);
+  outline-offset: 2px;
+  transform: none;
+}
+:root[data-katu-theme] .katu-app-shell .katu-service-hero {
+  background: var(--katu-dialog-inner) !important;
+  color: rgb(var(--katu-text)) !important;
+}
+:root[data-katu-theme] .katu-app-shell .katu-service-hero [class*="text-white"] {
+  color: rgb(var(--katu-text)) !important;
+}
+:root[data-katu-theme] .katu-app-shell .katu-service-hero .rounded-2xl[class~="bg-white"] {
+  background: var(--katu-dialog) !important;
+  box-shadow: none !important;
+}
+:root[data-katu-theme] .katu-app-shell main > :is(header,footer)[class~="fixed"],
+:root[data-katu-theme] .katu-app-shell main > div[class~="fixed"][class~="bottom-0"] {
+  background: var(--katu-dialog) !important;
+  padding-bottom: max(12px,env(safe-area-inset-bottom));
+  height: auto;
+  min-height: 76px;
+}
+:root[data-katu-theme] .katu-app-shell .katu-overlay { padding-bottom: max(12px,env(safe-area-inset-bottom)); }
+.katu-dashboard { color-scheme: light; font-size: 15px; line-height: 1.6; }
+.katu-dashboard :is(.text-xs,[class~="text-[9px]"],[class~="text-[10px]"],[class~="text-[11px]"],[class~="text-[12px]"]) { font-size: 13px; line-height: 1.6; }
+.katu-dashboard :where(input,textarea,select):not([type="checkbox"]):not([type="radio"]) { font-size: 16px; line-height: 1.6; }
+.katu-dashboard .katu-input-group input { width: 0; min-width: 0; flex: 1 1 0%; }
+.katu-dashboard-dialog { z-index: 100; overscroll-behavior: contain; padding-bottom: max(12px,env(safe-area-inset-bottom)); }
+.katu-dashboard-dialog > div { max-height: calc(100dvh - 32px); overflow-y: auto; }
+html:has(.katu-dashboard-dialog) { overflow: hidden; }
+.katu-dashboard:has(.katu-dashboard-dialog) > nav { visibility: hidden; }
+.katu-dashboard > nav { padding-bottom: max(12px,env(safe-area-inset-bottom)); }
+@media (max-width: 374px) {
+  .katu-app-shell main > header { padding-left: 12px; padding-right: 12px; }
+  .katu-app-shell .katu-input-group { padding-left: 12px; padding-right: 12px; }
+}

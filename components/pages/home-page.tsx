@@ -106,8 +106,8 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         <div className="grid grid-cols-5 gap-y-5 rounded-3xl bg-white px-2 py-5 shadow-[0_8px_28px_rgba(80,98,116,.06)]">
           {services.map(({ name, icon: Icon, tone }) => (
             <button type="button" key={name} onClick={() => clickService(name)}
-              className="group flex flex-col items-center gap-2 text-[12px] font-medium text-slate-600 active:scale-95">
-              <span className={`flex size-12 items-center justify-center rounded-2xl transition group-active:scale-95 ${tone}`}>
+              className="group flex flex-col items-center gap-2 text-[12px] font-medium text-slate-600 ">
+              <span className={`flex size-12 items-center justify-center rounded-2xl transition ${tone}`}>
                 <Icon size={23} strokeWidth={1.8} />
               </span><span>{name}</span>
             </button>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./ui-consistency.css";
 
 export const metadata: Metadata = {
   title: "卡兔服务导航",

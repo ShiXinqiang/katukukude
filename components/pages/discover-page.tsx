@@ -23,6 +23,7 @@ export function DiscoverPage({
           </h1>
           <button
             type="button"
+            aria-label={searching ? "关闭搜索" : "搜索发现内容"}
             onClick={()=>setSearching(!searching)}
             className="flex size-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm"
           >
@@ -30,7 +31,7 @@ export function DiscoverPage({
           </button>
         </div>
 
-        {searching&&<div className="mt-4 flex items-center rounded-full bg-white px-3 py-2.5 shadow-sm"><Search size={16} className="text-slate-400"/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索发现内容" className="katu-search-input ml-2 flex-1 bg-transparent text-sm outline-none"/></div>}
+        {searching&&<div className="katu-search-form mt-4 flex h-12 min-w-0 items-center rounded-full bg-white px-3 py-2.5 shadow-sm"><Search size={16} className="text-slate-400"/><input autoFocus value={query} onChange={e=>setQuery(e.target.value)} aria-label="搜索发现内容" placeholder="搜索发现内容" className="katu-search-input ml-2 min-w-0 flex-1 bg-transparent text-sm outline-none"/></div>}
 
         <div className="scrollbar-hidden mt-5 flex gap-6 overflow-x-auto border-b border-slate-200">
           {discoverTabs.map((tab) => (

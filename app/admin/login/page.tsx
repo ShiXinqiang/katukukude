@@ -100,7 +100,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#e8eef2] px-4 py-8 text-slate-800 sm:px-8">
+    <main className="katu-dashboard min-h-screen bg-[#e8eef2] px-4 py-8 text-slate-800 sm:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1080px] items-center justify-center">
         <section className="grid w-full overflow-hidden rounded-[28px] bg-white shadow-[0_18px_60px_rgba(82,105,123,0.14)] md:grid-cols-[0.9fr_1.1fr]">
           <div className="relative hidden overflow-hidden bg-[#6f86a1] p-10 text-white md:block">
@@ -144,7 +144,7 @@ export default function AdminLoginPage() {
 
             <form className="mt-8 space-y-3" onSubmit={setupOpen ? submitBootstrap : submitLogin}>
               {setupOpen && (
-                <label className="flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
+                <label className="katu-input-group flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
                   <KeyRound size={18} className="mr-3 text-slate-400" />
                   <input
                     value={setupToken}
@@ -158,7 +158,7 @@ export default function AdminLoginPage() {
               )}
 
               {setupOpen && (
-                <label className="flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
+                <label className="katu-input-group flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
                   <UserRound size={18} className="mr-3 text-slate-400" />
                   <input
                     value={displayName}
@@ -170,7 +170,7 @@ export default function AdminLoginPage() {
                 </label>
               )}
 
-              <label className="flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
+              <label className="katu-input-group flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
                 <UserRound size={18} className="mr-3 text-slate-400" />
                 <input
                   value={username}
@@ -183,7 +183,7 @@ export default function AdminLoginPage() {
                 />
               </label>
 
-              <label className="flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
+              <label className="katu-input-group flex items-center rounded-2xl bg-[#f4f7f8] px-4 py-3.5">
                 <LockKeyhole size={18} className="mr-3 text-slate-400" />
                 <input
                   value={password}
