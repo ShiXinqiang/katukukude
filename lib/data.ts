@@ -21,7 +21,7 @@ export type ProductSpec={name:string;values:string[]};
 export type MerchantProductRecord={id:string;title:string;subtitle:string|null;description:string;category:string;price:string;originalPrice:string|null;stock:number;status:"draft"|"pending"|"active"|"rejected"|"archived";images:string[];badge:string|null;tags:string[];specifications:ProductSpec[];shippingFee:string;freeShipping:boolean;serviceGuarantees:string[];promotionTitle:string|null;promotionStart:string|null;promotionEnd:string|null;rejectionReason:string|null;isOfficial:boolean;isFeatured:boolean;isRecommended:boolean;sortOrder:number;salesCount:number;ratingAverage:string;ratingCount:number;createdAt:string;updatedAt:string};
 export type ProductData={id:string;title:string;subtitle:string;description?:string;price:number;original:number;rating:string;ratingCount?:number;distance:string;sales:string;salesCount?:number;tags:string[];store:string;imageLabel:string;images?:string[];category?:string;stock?:number;badge?:string|null;isOfficial?:boolean;isFeatured?:boolean;isRecommended?:boolean;promotionTitle?:string|null;specifications?:ProductSpec[];shippingFee?:number;freeShipping?:boolean;serviceGuarantees?:string[]};
 export type ServiceItem={name:string;icon:LucideIcon;tone:string};
-export type CartItem={id:string;shop:string;title:string;spec:string;unit:number;quantity:number;imageLabel:string};
+export type CartItem={id:string;shop:string;title:string;spec:string;unit:number;quantity:number;imageLabel:string;imageUrl?:string};
 export const formatMoney=(value:number)=>`Ks ${value.toLocaleString("zh-CN")}`;
 export const services:ServiceItem[]=[
 {name:"外卖",icon:Bike,tone:"bg-[#e5edf2] text-[#6d879e]"},

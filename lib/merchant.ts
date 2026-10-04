@@ -131,6 +131,9 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    ALTER TABLE product_media ALTER COLUMN product_id DROP NOT NULL;
+    ALTER TABLE product_media ENABLE ROW LEVEL SECURITY;
+
     ALTER TABLE orders
       ADD COLUMN IF NOT EXISTS merchant_id TEXT REFERENCES merchants(id) ON DELETE SET NULL;
 

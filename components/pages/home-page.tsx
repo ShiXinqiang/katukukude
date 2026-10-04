@@ -144,7 +144,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
           {products.slice(0,4).map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="min-w-[238px] snap-start overflow-hidden rounded-3xl bg-white text-left shadow-sm">
-              <span className="relative block"><SkeletonImage className="h-36 rounded-none" label={product.imageLabel} />{product.badge&&<span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-[#b16f5f]">{product.badge}</span>}{product.isOfficial&&<span className="absolute right-3 top-3 rounded-full bg-[#6f879d]/90 px-2.5 py-1 text-[10px] font-semibold text-white">官方</span>}</span>
+              <span className="relative block"><SkeletonImage className="h-36 rounded-none" label={product.title} src={product.images?.[0]} />{product.badge&&<span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-[#b16f5f]">{product.badge}</span>}{product.isOfficial&&<span className="absolute right-3 top-3 rounded-full bg-[#6f879d]/90 px-2.5 py-1 text-[10px] font-semibold text-white">官方</span>}</span>
               <div className="p-3.5">
                 <h3 className="truncate text-sm font-semibold text-slate-800">{product.title}</h3>{product.promotionTitle&&<p className="mt-1 truncate text-[11px] text-[#b47763]">{product.promotionTitle}</p>}
                 <div className="mt-2 flex items-end justify-between">
@@ -165,7 +165,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
           {products.map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="flex w-full gap-3 rounded-3xl bg-white p-2.5 text-left shadow-sm active:scale-[.99]">
-              <SkeletonImage className="h-[108px] w-[112px] shrink-0 rounded-2xl" label={product.imageLabel}/>
+              <SkeletonImage className="h-[108px] w-[112px] shrink-0 rounded-2xl" label={product.title} src={product.images?.[0]}/>
               <span className="min-w-0 flex-1 py-1">
                 <span className="line-clamp-2 text-sm font-semibold leading-5 text-slate-800">{product.title}</span>
                 <span className="mt-2 flex flex-wrap gap-1">{product.isOfficial&&<span className="rounded-md bg-[#e8eef2] px-1.5 py-1 text-[10px] text-[#607992]">官方认证</span>}{product.promotionTitle&&<span className="rounded-md bg-[#f8eae5] px-1.5 py-1 text-[10px] text-[#b47763]">{product.promotionTitle}</span>}{product.tags.map(t=><span key={t} className="rounded-md bg-[#f0f3f5] px-1.5 py-1 text-[10px] text-slate-500">{t}</span>)}</span>

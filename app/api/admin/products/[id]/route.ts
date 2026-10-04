@@ -1,3 +1,4 @@
+import {imageUrls} from "../../../../../lib/product-images";
 import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "../../../../../lib/admin";
 import { cleanText, ensureMerchantSchema } from "../../../../../lib/merchant";
@@ -44,7 +45,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       promotion_title=$20,promotion_start=$21,promotion_end=$22,sort_order=$23,rejection_reason=$24,updated_at=NOW()
       WHERE id=$1`, [
       params.id, title, subtitle, description, category, price, originalPrice, stock, status,
-      JSON.stringify(body.images === undefined ? x.images : strings(body.images, 8)),
+      JSON.stringify(body.images === undefined ? x.images : imageUrls(body.images)),
       JSON.stringify(body.tags === undefined ? x.tags : strings(body.tags, 12)),
       JSON.stringify(body.specifications === undefined ? x.specifications : specs(body.specifications)),
       shippingFee, body.freeShipping === undefined ? x.free_shipping : body.freeShipping === true,

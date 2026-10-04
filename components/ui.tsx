@@ -1,3 +1,5 @@
+"use client";
+import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight, Image as ImageIcon } from "lucide-react";
 
@@ -9,11 +11,15 @@ export function SkeletonImage({
   className,
   label = "图片占位",
   compact = false,
+  src,
 }: {
   className?: string;
   label?: string;
   compact?: boolean;
+  src?: string;
 }) {
+  const [failed, setFailed] = useState<string>();
+  if (src && failed !== src) return <div className={cn("relative overflow-hidden bg-slate-100", className)}><img src={src} alt={label} loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(src)} className="absolute inset-0 h-full w-full object-cover" /></div>;
   return (
     <div className={cn("relative overflow-hidden bg-slate-200", className)}>
       <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300" />
