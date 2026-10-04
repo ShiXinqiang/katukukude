@@ -72,9 +72,9 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
     <main className="min-h-screen overflow-hidden bg-[#f5f7f9] pb-28">
       <header className="sticky top-0 z-30 border-b border-slate-100/80 bg-[#f5f7f9]/95 px-4 pb-3 pt-[max(16px,env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="flex h-11 items-center gap-2">
-          <div className={`overflow-hidden transition-all duration-300 ${searching ? "w-0 opacity-0" : "w-[132px] opacity-100"}`}>
-            <button type="button" onClick={() => setRegionOpen(true)}
-              className="flex h-10 w-[132px] items-center gap-1 overflow-hidden text-left text-xs font-semibold text-slate-700">
+          <div aria-hidden={searching} className={`shrink-0 overflow-hidden transition-all duration-300 ${searching ? "hidden" : "w-[120px] opacity-100"}`}>
+            <button type="button" tabIndex={searching ? -1 : 0} onClick={() => setRegionOpen(true)}
+              className="flex h-10 w-[120px] items-center gap-1 overflow-hidden text-left text-xs font-semibold text-slate-700">
               <MapPin size={17} className="shrink-0 text-[#6f879d]" />
               <span className="truncate">{region}</span><ChevronDown size={14} className="shrink-0 text-slate-400" />
             </button>
@@ -85,11 +85,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
             </button>
           )}
           <form onSubmit={submitSearch} onClick={beginSearch}
-            className="flex h-10 min-w-0 flex-1 items-center rounded-full border border-slate-100 bg-white px-3 shadow-sm transition-all">
+            className="katu-search-form flex h-10 min-w-0 flex-1 items-center rounded-full border border-slate-100 bg-white px-3 shadow-sm transition-all">
             <Search size={17} className="mr-2 shrink-0 text-slate-400" />
             <input ref={inputRef} value={keyword} onFocus={beginSearch} onChange={e => setKeyword(e.target.value)}
-              placeholder="搜美食、商品或服务" className="katu-search-input min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
-            {searching && keyword && <button type="button" aria-label="清空" onClick={e => {e.stopPropagation();setKeyword("");inputRef.current?.focus();}} className="text-slate-400"><X size={17}/></button>}
+              aria-label="搜索商品或店铺" enterKeyHint="search" autoComplete="off" placeholder={searching ? "搜索商品或店铺" : "搜索商品"} className="katu-search-input min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400" />
+            {searching && keyword && <button type="button" aria-label="清空" onClick={e => {e.stopPropagation();setKeyword("");inputRef.current?.focus();}} className="katu-search-clear text-slate-400"><X size={17}/></button>}
+            {searching && <button type="submit" className="katu-search-submit" disabled={!keyword.trim()}>搜索</button>}
           </form>
           {!searching && (
             <button type="button" onClick={() => onNavigate("cart")} aria-label="购物车"

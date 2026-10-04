@@ -735,3 +735,11 @@ html:has(.katu-app-shell .katu-overlay) { overflow: hidden; }
 @media (hover:hover) and (pointer:fine) {
   :root[data-katu-theme] .katu-app-shell :is(section,article)[class*="rounded"]:hover { transform: none; }
 }
+
+/* Search controls keep their own compact layout in both glass themes. */
+:root[data-katu-theme] .katu-app-shell .katu-search-form { gap: 4px; padding-inline: 10px; overflow: hidden; }
+:root[data-katu-theme] .katu-app-shell .katu-search-form > svg { flex-shrink: 0; margin-right: 2px; }
+:root[data-katu-theme] .katu-app-shell .katu-search-form .katu-search-input { width: 0; flex: 1 1 0%; min-width: 0; font-size: 16px; }
+:root[data-katu-theme] .katu-app-shell .katu-search-form .katu-search-clear { display: flex; align-items: center; justify-content: center; flex: 0 0 28px; height: 36px; }
+:root[data-katu-theme] .katu-app-shell .katu-search-form .katu-search-submit { flex: 0 0 auto; height: 32px; padding: 0 10px; border-radius: 999px; background: var(--katu-action-bg) !important; color: var(--katu-action-fg) !important; font-size: 13px; font-weight: 600; white-space: nowrap; }
+:root[data-katu-theme] .katu-app-shell .katu-search-submit:disabled { opacity: .45; }
