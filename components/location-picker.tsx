@@ -297,7 +297,7 @@ export function LocationPicker({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/45 px-3 pb-3"
+      className="katu-overlay katu-overlay-top fixed inset-0 z-[70] flex items-end justify-center bg-slate-950/45 px-3 pb-3"
       onClick={onClose}
     >
       <section

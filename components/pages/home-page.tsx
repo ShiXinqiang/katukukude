@@ -181,7 +181,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
       {locationPickerOpen && <LocationPicker title="选择地区" description="自动定位失败时，可从 Google 地图复制位置链接回来填写。" onClose={() => setLocationPickerOpen(false)} onApply={applyLocation} />}
 
       {regionOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35" onClick={() => setRegionOpen(false)}>
+        <div className="katu-overlay fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35" onClick={() => setRegionOpen(false)}>
           <section onClick={e=>e.stopPropagation()} className="max-h-[86vh] w-full max-w-[390px] overflow-auto rounded-t-[28px] bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3">
             <div className="mx-auto h-1 w-10 rounded-full bg-slate-200"/>
             <div className="mt-5 flex items-center justify-between"><div><h2 className="text-lg font-bold text-slate-800">当前位置</h2><p className="mt-1 text-[11px] text-slate-400">选择首页展示及附近服务区域</p></div><button type="button" aria-label="关闭" onClick={()=>setRegionOpen(false)} className="flex size-9 items-center justify-center rounded-full bg-slate-100"><X size={18}/></button></div>
