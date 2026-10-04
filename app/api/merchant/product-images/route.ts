@@ -5,7 +5,11 @@ export async function POST(request:Request){
  try {
   const {merchant}=await requireMerchant();
   if(Number(request.headers.get("content-length"))>5*1024*1024+16384)return NextResponse.json({message:"图片不能超过5MB"},{status:413});
-  const form=await request.formData(), file=form.get("file");
+  const reader=request.body?.getReader();
+  if(!reader)return NextResponse.json({message:"请选择图片"},{status:400});
+  const chunks:Uint8Array[]=[];let bytes=0;
+  for(;;){const part=await reader.read();if(part.done)break;bytes+=part.value.byteLength;if(bytes>5*1024*1024+16384){await reader.cancel();return NextResponse.json({message:"图片不能超过5MB"},{status:413});}chunks.push(part.value);}
+  const form=await new Request(request.url,{method:"POST",headers:{"Content-Type":request.headers.get("content-type")||""},body:Buffer.concat(chunks)}).formData(), file=form.get("file");
   if(!(file instanceof File)||file.size===0||file.size>5*1024*1024)return NextResponse.json({message:"请选择5MB以内的图片"},{status:400});
   const content=Buffer.from(await file.arrayBuffer());
   const mime=content.subarray(0,3).equals(Buffer.from([255,216,255]))?"image/jpeg":content.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))?"image/png":content.toString("ascii",0,4)==="RIFF"&&content.toString("ascii",8,12)==="WEBP"?"image/webp":"";
