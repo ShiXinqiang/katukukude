@@ -38,7 +38,7 @@ export default function Page(){
  const openService=(name:string)=>{setServiceName(name);navigate("service")};
  const activeNav:MainTab=(["discover","scan","messages","profile"] as View[]).includes(view)?view as MainTab:"home";
  const showBottomNav=["home","discover","messages","profile","search"].includes(view);
- return <div className="min-h-screen bg-[#dfe6ec]"><div className="katu-app-shell relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden">
+ return <div className="katu-site-background min-h-screen bg-[#dfe6ec]"><div className="katu-app-shell relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden">
   {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user}/>}
   {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
   {view==="messages"&&<MessagesPage/>}
