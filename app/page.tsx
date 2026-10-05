@@ -7,7 +7,7 @@ import { useAppNavigation } from "../components/use-app-navigation";
 import { BottomNav } from "../components/navigation";
 import { CartPage } from "../components/pages/cart-page";
 import { CheckoutPage } from "../components/pages/checkout-page";
-import { DiscoverPage } from "../components/pages/discover-page";
+import { MallPage } from "../components/pages/mall-page";
 import { HomePage } from "../components/pages/home-page";
 import { LoginPage } from "../components/pages/login-page";
 import { MessagesPage } from "../components/pages/messages-page";
@@ -35,14 +35,14 @@ export default function Page(){
  const showBottomNav=["home","discover","messages","profile","search"].includes(view);
  return <div className="katu-site-background min-h-screen bg-[#dfe6ec]"><div className="katu-app-shell relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden">
   {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user} authLoading={!authReady}/>}
-  {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
+  {view==="discover"&&<MallPage onProduct={openProduct} onNavigate={target=>{if(target==="orders"&&!user)navigate("login");else navigate(target)}} cartCount={cartCount}/>}
   {view==="messages"&&<MessagesPage/>}
   {view==="profile"&&(!authReady?<main className="min-h-screen p-4" aria-busy="true"><p>正在读取账号…</p></main>:<ProfilePage onOrders={filter=>navigate("orders",{ordersFilter:filter})} onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);replaceView("home",{depth:0})}}/>)}
-  {view==="product"&&<ProductPage key={selectedProductId} productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>navigate("checkout",{checkoutTotal:total})}/>}
+  {view==="product"&&<ProductPage onCart={()=>navigate("cart")} key={selectedProductId} productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>navigate("checkout",{checkoutTotal:total})}/>}
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
   {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);goBack()}}/>}
   {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>navigate("checkout",{checkoutTotal:total})}/>}
-  {view==="checkout"&&<CheckoutPage onOrders={()=>replaceView("orders",{ordersFilter:"all"})} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
+  {view==="checkout"&&<CheckoutPage onLogin={()=>navigate("login")} onOrders={()=>replaceView("orders",{ordersFilter:"all"})} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
   {view==="service"&&<ServicePage key={serviceName} title={serviceName} onBack={goBack} onProduct={openProduct} onService={name=>navigate("service",{serviceName:name,serviceParent:serviceName})}/>}

@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Compass, Home, MessageSquare, ScanLine, UserRound } from "lucide-react";
+import { ShoppingBag, Home, MessageSquare, ScanLine, UserRound } from "lucide-react";
 import type { MainTab, View } from "../lib/data";
 import { cn } from "./ui";
 
@@ -18,7 +18,7 @@ export function BottomNav({
     icon: LucideIcon;
   }> = [
     { view: "home", label: "首页", icon: Home },
-    { view: "discover", label: "发现", icon: Compass },
+    { view: "discover", label: "商城", icon: ShoppingBag },
     { view: "scan", label: "扫一扫", icon: ScanLine },
     { view: "messages", label: "信息", icon: MessageSquare },
     { view: "profile", label: "我的", icon: UserRound },

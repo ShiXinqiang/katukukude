@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import type { ProductData } from "../lib/data";
-type Catalog = { products?: ProductData[]; product?: ProductData | null };
+type Catalog = {total?:number;page?:number;pages?:number;pageSize?:number;categories?:string[]; products?: ProductData[]; product?: ProductData | null };
 const cache = new Map<string, Catalog>();
 export function useCatalogResource(url: string, delay = 0) {
  const [snapshot, setSnapshot] = useState(() => ({ url, data: cache.get(url), loading: !cache.has(url), error: "" }));
