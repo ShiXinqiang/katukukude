@@ -109,6 +109,7 @@ export async function ensureMerchantSchema(): Promise<Pool> {
     END $migration$;
 
     ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS product_rules JSONB NOT NULL DEFAULT '{}'::jsonb,
       ADD COLUMN IF NOT EXISTS subtitle VARCHAR(160),
       ADD COLUMN IF NOT EXISTS original_price NUMERIC(14,2),
       ADD COLUMN IF NOT EXISTS badge VARCHAR(32),
@@ -145,7 +146,26 @@ export async function ensureMerchantSchema(): Promise<Pool> {
     ALTER TABLE product_media ENABLE ROW LEVEL SECURITY;
 
     ALTER TABLE orders
-      ADD COLUMN IF NOT EXISTS merchant_id TEXT REFERENCES merchants(id) ON DELETE SET NULL;
+      ADD COLUMN IF NOT EXISTS merchant_id TEXT REFERENCES merchants(id) ON DELETE SET NULL,
+      ADD COLUMN IF NOT EXISTS shipment JSONB,
+      ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ,
+      ADD COLUMN IF NOT EXISTS checkout_key TEXT;
+    CREATE UNIQUE INDEX IF NOT EXISTS orders_checkout_key_idx ON orders(user_id,merchant_id,checkout_key) WHERE checkout_key IS NOT NULL;
+    CREATE TABLE IF NOT EXISTS after_sales (
+      id TEXT PRIMARY KEY,order_id TEXT NOT NULL REFERENCES orders(id), user_id TEXT NOT NULL REFERENCES users(id),merchant_id TEXT NOT NULL REFERENCES merchants(id),
+      kind TEXT NOT NULL CHECK(kind IN ('refund','return_refund')),reason TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'requested' CHECK(status IN ('requested','approved','rejected','refunded')),
+      merchant_reply TEXT,review_note TEXT,refund_reference TEXT,amount NUMERIC(12,2),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS after_sales_open_order_idx ON after_sales(order_id) WHERE status IN ('requested','approved','refunded');
+    ALTER TABLE after_sales ENABLE ROW LEVEL SECURITY;
+
+    CREATE TABLE IF NOT EXISTS commerce_settings (key TEXT PRIMARY KEY,value JSONB NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    ALTER TABLE commerce_settings ENABLE ROW LEVEL SECURITY;
+    CREATE TABLE IF NOT EXISTS commerce_audit (id TEXT PRIMARY KEY, actor_id TEXT, target_id TEXT NOT NULL, action TEXT NOT NULL, details JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+    ALTER TABLE commerce_audit ENABLE ROW LEVEL SECURITY;
+    CREATE INDEX IF NOT EXISTS commerce_audit_target_idx ON commerce_audit(target_id, created_at DESC);
 
     CREATE INDEX IF NOT EXISTS merchant_applications_status_idx
       ON merchant_applications(status, submitted_at DESC);

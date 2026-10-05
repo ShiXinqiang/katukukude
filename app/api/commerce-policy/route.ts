@@ -1,0 +1,8 @@
+import {NextResponse} from 'next/server';
+import {randomUUID} from 'node:crypto';
+import {getCurrentAdmin} from '../../../lib/admin';
+import {ensureMerchantSchema} from '../../../lib/merchant';
+import {readCommercePolicy,validateCommercePolicy} from '../../../lib/commerce-policy';
+export const dynamic='force-dynamic';
+export async function GET(){try{return NextResponse.json(await readCommercePolicy())}catch{return NextResponse.json({message:'平台规则加载失败'},{status:503})}}
+export async function PATCH(request:Request){const admin=await getCurrentAdmin();if(!admin)return NextResponse.json({message:'需要管理员权限'},{status:401});let c;try{const b=await request.json(),value=validateCommercePolicy(b),db=await ensureMerchantSchema();c=await db.connect();await c.query('BEGIN');await c.query("SELECT pg_advisory_xact_lock(hashtext('commerce.product-policy'))");const old=(await c.query("SELECT revision FROM commerce_settings WHERE key='product_policy' FOR UPDATE")).rows[0];if(Number(b.revision)!==(old?.revision||0))throw Error('规则已被修改，请刷新后重试');const revision=(old?.revision||0)+1;await c.query("INSERT INTO commerce_settings(key,value,revision) VALUES('product_policy',$1::jsonb,$2) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,revision=EXCLUDED.revision,updated_at=NOW()",[JSON.stringify(value),revision]);await c.query('INSERT INTO commerce_audit(id,actor_id,target_id,action,details) VALUES($1,$2,$3,$4,$5::jsonb)',[randomUUID(),admin.id,'product_policy','policy.update',JSON.stringify({...value,revision})]);await c.query('COMMIT');return NextResponse.json({...value,revision})}catch(e){if(c)await c.query('ROLLBACK');return NextResponse.json({message:(e as Error).message},{status:409})}finally{c?.release()}}

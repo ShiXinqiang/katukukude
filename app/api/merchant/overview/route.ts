@@ -8,16 +8,18 @@ export async function GET() {
     const { merchant } = await requireMerchant();
     const { ensureMerchantSchema } = await import("../../../../lib/merchant");
     const database = await ensureMerchantSchema();
-    const [products, activeProducts, orders, pendingOrders, revenue] = await Promise.all([
+    const [products, activeProducts, orders, pendingOrders, revenue, todo] = await Promise.all([
       database.query<{ count: string }>("SELECT COUNT(*)::text AS count FROM products WHERE merchant_id = $1", [merchant.id]),
       database.query<{ count: string }>("SELECT COUNT(*)::text AS count FROM products WHERE merchant_id = $1 AND status = 'active'", [merchant.id]),
       database.query<{ count: string }>("SELECT COUNT(*)::text AS count FROM orders WHERE merchant_id = $1", [merchant.id]),
       database.query<{ count: string }>("SELECT COUNT(*)::text AS count FROM orders WHERE merchant_id = $1 AND status IN ('paid','processing')", [merchant.id]),
       database.query<{ total: string }>("SELECT COALESCE(SUM(paid_amount),0)::text AS total FROM orders WHERE merchant_id = $1 AND payment_status = 'paid'", [merchant.id]),
+      database.query("SELECT (SELECT count(*)::int FROM products WHERE merchant_id=$1 AND status='pending') AS pending, (SELECT count(*)::int FROM products WHERE merchant_id=$1 AND status='active' AND stock<5) AS low, (SELECT count(*)::int FROM after_sales WHERE merchant_id=$1 AND status IN ('requested','approved')) AS cases",[merchant.id]),
     ]);
     return NextResponse.json({
       merchant,
       overview: {
+        pendingProducts:todo.rows[0]?.pending||0,lowStock:todo.rows[0]?.low||0,afterSales:todo.rows[0]?.cases||0,
         products: Number(products.rows[0]?.count ?? 0),
         activeProducts: Number(activeProducts.rows[0]?.count ?? 0),
         orders: Number(orders.rows[0]?.count ?? 0),

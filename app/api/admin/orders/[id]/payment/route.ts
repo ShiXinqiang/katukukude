@@ -1,6 +1,7 @@
+import {ensureMerchantSchema} from "../../../../../../lib/merchant";
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { ensureAdminSchema, getCurrentAdmin } from "../../../../../../lib/admin";
+import { getCurrentAdmin } from "../../../../../../lib/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -42,15 +43,19 @@ export async function POST(
         ? body.transactionId.trim().slice(0, 160)
         : null;
 
-    if (!Number.isFinite(amount) || amount < 0) {
-      return NextResponse.json({ message: "请输入有效的付款金额" }, { status: 400 });
+    if (!transactionId || !Number.isFinite(amount) || amount <= 0 || Math.abs(amount*100-Math.round(amount*100))>0.0001) {
+      return NextResponse.json({ message: "请输入准确付款金额和真实交易流水号" }, { status: 400 });
     }
 
-    const database = await ensureAdminSchema();
+    const database = await ensureMerchantSchema();
     const client = await database.connect();
 
     try {
       await client.query("BEGIN");
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))",["payment:"+transactionId]);
+      const duplicate=await client.query("SELECT id FROM orders WHERE transaction_id=$1 AND id<>$2",[transactionId,params.id]);
+      if(duplicate.rows.length){await client.query("ROLLBACK");return NextResponse.json({message:"该交易流水已用于其他订单"},{status:409});}
+
       const result = await client.query<PaymentOrderRow>(
         `SELECT id,
                 order_no AS "orderNo",
@@ -83,6 +88,7 @@ export async function POST(
         return NextResponse.json({ order, notificationSent: false });
       }
 
+      if(order.status!=="pending"){await client.query("ROLLBACK");return NextResponse.json({message:"只能确认待付款订单收款"},{status:409});}
       const expectedCents = Math.round(Number(order.totalAmount) * 100);
       const actualCents = Math.round(amount * 100);
       if (!Number.isFinite(expectedCents) || expectedCents !== actualCents) {
@@ -129,6 +135,7 @@ export async function POST(
         );
       }
 
+      await client.query("INSERT INTO commerce_audit(id,actor_id,target_id,action,details) VALUES($1,$2,$3,$4,$5::jsonb)",[randomUUID(),admin.id,params.id,"order.payment",JSON.stringify({amount,transactionId})]);
       await client.query("COMMIT");
       const saved = updated.rows[0];
 

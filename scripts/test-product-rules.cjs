@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript'),path=require('node:path');
+function loader(overrides={}){const cache={};return function load(file){file=path.resolve(file);if(overrides[file])return overrides[file];if(cache[file])return cache[file];const module={exports:{}};cache[file]=module.exports;vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module,exports:module.exports,require:n=>n.startsWith('.')?load(path.resolve(path.dirname(file),n)+'.ts'):require(n),console,URL,Request,Response,Date});return module.exports;}}
+const load=loader(),rules=load('lib/product-rules.ts'),pricing=load('lib/checkout-pricing.ts');
+const good={title:'测试纯棉短袖',description:'用于验证完整商品发布规则的测试商品',category:'服装鞋包',price:1000,stock:10,images:['https://example.com/shirt.jpg'],freeShipping:false,shippingFee:500,rules:{...rules.emptyProductRules(),origin:'仰光仓库',deliveryRegions:['仰光']}};
+const clone=x=>JSON.parse(JSON.stringify(x));
+assert.equal(rules.normalizeProduct({title:'草稿'}, {},false).stock,0);
+assert.equal(rules.normalizeProduct({...good,category:'平台自定义分类'},{},true,['平台自定义分类']).category,'平台自定义分类');
+assert.throws(()=>rules.normalizeProduct({...good,rules:{...good.rules,returns:{enabled:true,days:7,condition:'包装完整',freight:'merchant'}}},{},true,rules.PRODUCT_CATEGORIES,[]));
+const normalized=rules.normalizeProduct(good,{},true);assert.equal(normalized.rules.version,1);
+for(const patch of [{title:'短'},{description:'短'},{category:'随便填'},{stock:0},{price:-1},{price:0.001},{images:[]},{images:['javascript:alert(1)']},{originalPrice:500},{promotionTitle:'促销'},{rules:{...good.rules,deliveryRegions:[]}},{rules:{...good.rules,returns:{enabled:true,days:7,condition:''}}},{tags:['平台担保']}])assert.throws(()=>rules.normalizeProduct({...good,...patch},{},true));
+let sku=clone(good);sku.specifications=[{name:'颜色',values:['红','蓝']},{name:'尺码',values:['S','M']}];sku.rules.variants=rules.specCombinations(sku.specifications).map((spec,i)=>({spec,price:1000+i*100,stock:2,image:''}));
+const n=rules.normalizeProduct(sku,{},true);assert.equal(n.stock,8);assert.equal(n.price,1000);assert.throws(()=>rules.normalizeProduct({...sku,rules:{...sku.rules,variants:sku.rules.variants.slice(1)}},{},true));
+assert.throws(()=>rules.normalizeProduct({...sku,specifications:[{name:'颜色',values:['红','红']}]},{},true));
+const p={id:'p',title:good.title,price:n.price,stock:n.stock,merchant_id:'m',status:'active',shipping_fee:500,free_shipping:false,specifications:n.specifications,product_rules:n.rules,images:n.images};
+const lines=[{productId:'p',spec:'颜色：蓝；尺码：M',quantity:2}];
+const quote=pricing.priceCheckout([p],lines,'仰光');assert.equal(quote.subtotal,2600);assert.equal(quote.total,3100);assert.equal(quote.rows[0].rules.variants.length,0);
+assert.throws(()=>pricing.priceCheckout([p],lines,'掸邦'));assert.throws(()=>pricing.priceCheckout([p],[{...lines[0],quantity:3}],'仰光'));assert.throws(()=>pricing.priceCheckout([p],[{...lines[0],spec:'默认规格'}],'仰光'));
+const p2=clone(p);p2.product_rules.dispatchHours=72;assert.notEqual(pricing.priceCheckout([p2],lines,'仰光').quoteToken,quote.quoteToken);assert.equal(quote.rows[0].rules.dispatchHours,48);
+(async()=>{
+ let record={id:'p',merchant_id:'m',status:'active',updated_at:new Date().toISOString(),title:good.title,description:good.description,category:good.category,price:1000,stock:10,images:good.images,free_shipping:false,shipping_fee:500,product_rules:good.rules,specifications:[],tags:[]},events=0,openOrders=false,rollback=0;
+ const client={query:async(sql,args=[])=>{if(sql==='ROLLBACK'){rollback++;return{rows:[]}}if(sql.startsWith('SELECT * FROM products')||sql.startsWith('SELECT merchant_id,status FROM products'))return{rows:[clone(record)]};if(sql.startsWith('SELECT status FROM merchants'))return{rows:[{status:'active'}]};if(sql.startsWith('SELECT 1 FROM orders'))return{rows:openOrders?[{}]:[]};if(sql.startsWith('UPDATE products SET')){const assignments=sql.split(' SET ')[1].split(' WHERE ')[0].split(',');assignments.forEach((s,i)=>{const key=s.split('=')[0];record[key]=['images','tags','specifications','product_rules','service_guarantees'].includes(key)?JSON.parse(args[i+1]):args[i+1]});return{rows:[]}}if(sql.startsWith('INSERT INTO commerce_audit'))events++;return{rows:[]}},release(){}};
+ const svc=loader({[path.resolve('lib/merchant.ts')]:{ensureMerchantSchema:async()=>({connect:async()=>client})},[path.resolve('lib/commerce-policy.ts')]:{readCommercePolicy:async()=>({categories:rules.PRODUCT_CATEGORIES,guarantees:['returns','damage','warranty']})}})('lib/product-service.ts');
+ await assert.rejects(()=>svc.saveProduct(good,'other','other','p'),/无权/);
+ await assert.rejects(()=>svc.saveProduct({...good,expectedUpdatedAt:'2020-01-01'},'u','m','p'),/已被修改/);
+ assert.equal((await svc.saveProduct(good,'u','m','p')).status,'draft');assert.equal(record.status,'draft');assert.equal(events,1);
+ assert.equal((await svc.saveProduct({action:'submit'},'u','m','p')).status,'pending');
+ await assert.rejects(()=>svc.saveProduct(good,'u','m','p'),/审核中/);
+ assert.equal((await svc.saveProduct({status:'active'},'a',undefined,'p',true)).status,'active');
+ await assert.rejects(()=>svc.deleteProduct('p','u','m'),/下架/);
+ await svc.saveProduct({action:'archive'},'u','m','p');openOrders=true;
+ await assert.rejects(()=>svc.deleteProduct('p','u','m'),/已有订单/);
+ await assert.rejects(()=>svc.saveProduct(sku,'u','m','p'),/未结束订单/);
+ assert.ok(rollback>=5);
+ console.log('PASS: draft vs publish requirements, category/image/amount/promotion rules, SKU combinations/prices/stock, delivery scope, immutable snapshots and quote fingerprints, ownership, stale edits, edit-to-draft/review transitions, audit and ordered-product deletion guards. Isolated database mocks.');
+})().catch(e=>{console.error(e);process.exitCode=1});
+module.exports={loader};

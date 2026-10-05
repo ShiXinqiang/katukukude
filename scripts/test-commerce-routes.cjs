@@ -2,11 +2,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 function load(path,deps={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports,require:n=>n in deps?deps[n]:require(n),Request,Response,console});return exports;}
 class NextResponse extends Response{static json(x,init){return new NextResponse(JSON.stringify(x),init);}}
 const next={'next/server':{NextResponse}},clean=(v,max=200)=>typeof v==='string'?v.trim().slice(0,max):'',rules=load('lib/order-rules.ts');
+const productRules=load('lib/product-rules.ts',{'./product-images':load('lib/product-images.ts')});
+const pricing=load('lib/checkout-pricing.ts',{'./product-rules':productRules});
 const request=x=>new Request('https://test.example/api',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(x)});
 (async()=>{
  let rows=[{id:'a',price:'1200',stock:5,merchant_id:'m',shipping_fee:'500',free_shipping:false},{id:'b',price:'2000',stock:5,merchant_id:'m',shipping_fee:'0',free_shipping:true}];
- const quote=load('app/api/orders/quote/route.ts',{...next,'../../../../lib/merchant':{ensureMerchantSchema:async()=>({query:async()=>({rows})})},'../../../../lib/order-rules':rules});
- const q=await quote.POST(request({items:[{id:'a::x',quantity:2},{id:'b::x',quantity:1}]}));assert.equal(q.status,200);assert.deepEqual(await q.json(),{subtotal:4400,shipping:500,total:4900});
+ const quote=load('app/api/orders/quote/route.ts',{...next,'../../../../lib/merchant':{ensureMerchantSchema:async()=>({query:async()=>({rows})})},'../../../../lib/order-rules':rules,'../../../../lib/checkout-pricing':pricing});
+ const q=await quote.POST(request({items:[{id:'a::x',quantity:2},{id:'b::x',quantity:1}]}));assert.equal(q.status,200);const quoted=await q.json();assert.equal(quoted.subtotal,4400);assert.equal(quoted.shipping,500);assert.equal(quoted.total,4900);assert.equal(quoted.quoteToken.length,64);
  rows[1].merchant_id='m2';rows[1].free_shipping=false;rows[1].shipping_fee='300';assert.equal((await (await quote.POST(request({items:[{id:'a',quantity:2},{id:'b',quantity:1}]}))).json()).total,5200);
  rows[0].stock=1;assert.equal((await quote.POST(request({items:[{id:'a',quantity:2},{id:'b',quantity:1}]}))).status,400);
  let user={id:'ordinary-test-user',role:'user'},existing=[],documents=[{id:'p1',kind:'store_photo'},{id:'p2',kind:'store_photo'},{id:'v',kind:'store_video'}],savedValues;
@@ -21,8 +23,8 @@ const request=x=>new Request('https://test.example/api',{method:'POST',headers:{
  assert.equal((await app.POST(request({...form,description:'短'}))).status,400);
  documents=[];assert.equal((await app.POST(request(form))).status,400);user=null;assert.equal((await app.POST(request(form))).status,401);
  let admin=true,order={id:'o',orderNo:'TEST',userId:'u',status:'pending',paymentStatus:'unpaid',totalAmount:'2900',createdAt:stamp,updatedAt:stamp},updates=0,notifications=0;
- const client={query:async(sql,args)=>{if(sql.includes('FROM orders'))return{rows:[order]};if(sql.includes('UPDATE orders')){updates++;order={...order,status:'paid',paymentStatus:'paid',paidAmount:args[1]};return{rows:[order]}}if(sql.includes('INSERT INTO notifications'))notifications++;return{rows:[]}},release(){}};
- const payment=load('app/api/admin/orders/[id]/payment/route.ts',{...next,'../../../../../../lib/admin':{getCurrentAdmin:async()=>admin?{id:'admin'}:null,ensureAdminSchema:async()=>({connect:async()=>client})}});
+ const client={query:async(sql,args)=>{if(sql.includes('WHERE transaction_id='))return{rows:[]};if(sql.includes('FROM orders'))return{rows:[order]};if(sql.includes('UPDATE orders')){updates++;order={...order,status:'paid',paymentStatus:'paid',paidAmount:args[1]};return{rows:[order]}}if(sql.includes('INSERT INTO notifications'))notifications++;return{rows:[]}},release(){}};
+ const payment=load('app/api/admin/orders/[id]/payment/route.ts',{...next,'../../../../../../lib/admin':{getCurrentAdmin:async()=>admin?{id:'admin'}:null},'../../../../../../lib/merchant':{ensureMerchantSchema:async()=>({connect:async()=>client})}});
  const pay=amount=>payment.POST(request({amount,transactionId:'TEST-ONLY'}),{params:{id:'o'}});
  assert.equal((await pay(2800)).status,400);assert.equal(updates,0);assert.equal((await pay(2900)).status,200);assert.equal(order.status,'paid');assert.equal(notifications,1);assert.equal((await pay(2900)).status,200);assert.equal(updates,1);assert.equal(notifications,1);
  order={...order,status:'cancelled',paymentStatus:'unpaid'};assert.equal((await pay(2900)).status,409);admin=false;assert.equal((await pay(2900)).status,401);

@@ -11,7 +11,7 @@ export async function GET() {
       `SELECT o.id, o.order_no AS "orderNo", o.status, o.payment_status AS "paymentStatus",
               o.total_amount::text AS "totalAmount", o.paid_amount::text AS "paidAmount",
               o.shipping_name AS "shippingName", o.shipping_phone AS "shippingPhone",
-              o.shipping_address AS "shippingAddress", o.items,
+              o.shipping_address AS "shippingAddress", o.items,o.shipment,
               o.created_at AS "createdAt", u.username, u.display_name AS "displayName"
          FROM orders o LEFT JOIN users u ON u.id = o.user_id
         WHERE o.merchant_id = $1 ORDER BY o.created_at DESC LIMIT 200`,
