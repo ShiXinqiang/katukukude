@@ -1,8 +1,9 @@
 
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AuthUser, MainTab, View } from "../lib/data";
 import { cartQuantity } from "../lib/cart";
+import { useAppNavigation } from "../components/use-app-navigation";
 import { BottomNav } from "../components/navigation";
 import { CartPage } from "../components/pages/cart-page";
 import { CheckoutPage } from "../components/pages/checkout-page";
@@ -22,34 +23,29 @@ import { OrdersPage } from "../components/pages/orders-page";
 import { FavoritesPage, LikesPage, SettingsPage } from "../components/pages/account-pages";
 
 export default function Page(){
- const [view,setView]=useState<View>("home"); const history=useRef<View[]>([]);
- const [selectedProductId,setSelectedProductId]=useState(""); const [searchKeyword,setSearchKeyword]=useState("");
- const [ordersFilter,setOrdersFilter]=useState("all");
- const [serviceName,setServiceName]=useState("外卖"); const [serviceParent,setServiceParent]=useState<string|null>(null); const [checkoutTotal,setCheckoutTotal]=useState(0);
- const [user,setUser]=useState<AuthUser|null>(null); const [cartCount,setCartCount]=useState(0);
+ const {route,navigate,replace:replaceView,back:goBack}=useAppNavigation();
+ const {view,selectedProductId,searchKeyword,ordersFilter,serviceName,serviceParent,checkoutTotal}=route;
+ const [authReady,setAuthReady]=useState(false); const [user,setUser]=useState<AuthUser|null>(null); const [cartCount,setCartCount]=useState(0);
  useEffect(()=>{setCartCount(cartQuantity());const sync=()=>setCartCount(cartQuantity());window.addEventListener("katu:cart",sync);return()=>window.removeEventListener("katu:cart",sync)},[]);
- useEffect(()=>{let active=true;fetch("/api/auth/me",{cache:"no-store",credentials:"include"}).then(r=>r.ok?r.json():null).then(r=>{if(active)setUser(r?.user??null)}).catch(()=>active&&setUser(null));return()=>{active=false}},[]);
- const navigate=(next:View)=>{if(next===view)return;history.current.push(view);setView(next);window.scrollTo({top:0,behavior:"smooth"})};
- const replaceView=(next:View)=>{setView(next);window.scrollTo({top:0,behavior:"smooth"})};
- const goBack=()=>{const target=history.current.pop()||"home";setView(target);window.scrollTo({top:0,behavior:"smooth"})};
- const openProduct=(id:string)=>{setSelectedProductId(id);navigate("product")};
- const openSearch=(q:string)=>{setSearchKeyword(q);navigate("search")};
- const openService=(name:string)=>{setServiceName(name);navigate("service")};
+ useEffect(()=>{let active=true;fetch("/api/auth/me",{cache:"no-store",credentials:"include"}).then(r=>r.ok?r.json():null).then(r=>{if(active)setUser(r?.user??null)}).catch(()=>active&&setUser(null)).finally(()=>active&&setAuthReady(true));return()=>{active=false}},[]);
+ const openProduct=(id:string)=>navigate("product",{selectedProductId:id});
+ const openSearch=(q:string)=>navigate("search",{searchKeyword:q});
+ const openService=(name:string)=>navigate("service",{serviceName:name,serviceParent:null});
  const activeNav:MainTab=(["discover","scan","messages","profile"] as View[]).includes(view)?view as MainTab:"home";
  const showBottomNav=["home","discover","messages","profile","search"].includes(view);
  return <div className="katu-site-background min-h-screen bg-[#dfe6ec]"><div className="katu-app-shell relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden">
-  {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user}/>}
+  {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user} authLoading={!authReady}/>}
   {view==="discover"&&<DiscoverPage onProduct={openProduct}/>}
   {view==="messages"&&<MessagesPage/>}
-  {view==="profile"&&<ProfilePage onOrders={filter=>{setOrdersFilter(filter);navigate("orders")}} onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);history.current=[];replaceView("home")}}/>}
-  {view==="product"&&<ProductPage productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
+  {view==="profile"&&(!authReady?<main className="min-h-screen p-4" aria-busy="true"><p>正在读取账号…</p></main>:<ProfilePage onOrders={filter=>navigate("orders",{ordersFilter:filter})} onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);replaceView("home",{depth:0})}}/>)}
+  {view==="product"&&<ProductPage key={selectedProductId} productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>navigate("checkout",{checkoutTotal:total})}/>}
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
-  {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);history.current=history.current.filter(x=>x!=="login");replaceView("profile")}}/>}
-  {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>{setCheckoutTotal(total);navigate("checkout")}}/>}
-  {view==="checkout"&&<CheckoutPage onOrders={()=>{setOrdersFilter("all");history.current=["profile"];replaceView("orders")}} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
+  {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);goBack()}}/>}
+  {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>navigate("checkout",{checkoutTotal:total})}/>}
+  {view==="checkout"&&<CheckoutPage onOrders={()=>replaceView("orders",{ordersFilter:"all"})} total={checkoutTotal} onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="search"&&<SearchResultsPage initialKeyword={searchKeyword} onBack={goBack} onProduct={openProduct}/>}
   {view==="scan"&&<ScanPage onBack={goBack}/>}
-  {view==="service"&&<ServicePage title={serviceName} onBack={()=>{if(serviceParent){setServiceName(serviceParent);setServiceParent(null)}else{goBack()}}} onProduct={openProduct} onService={name=>{setServiceParent(serviceName);setServiceName(name)}}/>}
+  {view==="service"&&<ServicePage key={serviceName} title={serviceName} onBack={goBack} onProduct={openProduct} onService={name=>navigate("service",{serviceName:name,serviceParent:serviceName})}/>}
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}

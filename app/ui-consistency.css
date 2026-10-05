@@ -157,3 +157,9 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
   :root[data-katu-theme] body .katu-app-shell button::after { content: none; }
   :root[data-katu-theme] body .katu-app-shell button:is(:hover,:active) { filter: none !important; }
 }
+
+/* Stable page chrome and non-flashing placeholders on phones. */
+@media (max-width: 640px) {
+  :root[data-katu-theme] .katu-app-shell main > header { padding-top: max(12px,env(safe-area-inset-top)); padding-bottom: 12px; }
+  :root[data-katu-theme] .katu-app-shell .animate-pulse { animation: none; background-color: var(--katu-dialog-inner) !important; }
+}

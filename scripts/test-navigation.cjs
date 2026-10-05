@@ -1,0 +1,11 @@
+const fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm'),assert=require('node:assert/strict');
+function load(path,deps,extra={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports,require:n=>deps[n],...extra});return exports;}
+const rules=load('lib/navigation-state.ts',{}),listeners={},entries=[{}];let index=0,rendered,scrolls=[];
+const window={scrollY:0,innerHeight:800,addEventListener:(n,f)=>listeners[n]=f,removeEventListener(){},scrollTo:x=>scrolls.push(x),history:{state:entries[0],scrollRestoration:'auto',replaceState(x){this.state=x;entries[index]=x},pushState(x){entries.splice(index+1);entries.push(x);index++;this.state=x},back(){if(index){this.state=entries[--index];listeners.popstate({state:this.state})}}}};
+const react={useState:x=>[x,v=>rendered=v],useRef:x=>({current:x}),useEffect:f=>f(),useLayoutEffect:f=>f()};
+const hook=load('components/use-app-navigation.ts',{'react':react,'../lib/navigation-state':rules},{window,document:{activeElement:null,documentElement:{scrollHeight:800}},HTMLElement:class{},ResizeObserver:class{},setTimeout,clearTimeout}).useAppNavigation();
+hook.navigate('service',{serviceName:'更多'});window.scrollY=200;hook.navigate('service',{serviceName:'超市',serviceParent:'更多'});window.scrollY=430;hook.navigate('product',{selectedProductId:'apple'});assert.equal(rendered.selectedProductId,'apple');hook.back();assert.equal(rendered.serviceName,'超市');assert.equal(rendered.scrollY,430);hook.back();assert.equal(rendered.serviceName,'更多');assert.equal(rendered.scrollY,200);
+window.history.state=entries[++index];listeners.popstate({state:window.history.state});assert.equal(rendered.serviceName,'超市');
+hook.navigate('checkout',{checkoutTotal:2900});hook.navigate('addresses');hook.back();assert.equal(rendered.view,'checkout');assert.equal(rendered.checkoutTotal,2900);
+hook.replace('home',{depth:0});assert.equal(rendered.depth,0);assert.equal(scrolls[0].behavior,'instant');
+console.log('PASS: nested services, product context, back/forward snapshots, checkout/address return, logout root depth, instant initial scroll. Browser history simulated.');

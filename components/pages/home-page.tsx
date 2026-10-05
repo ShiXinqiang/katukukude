@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useCatalogResource } from "../use-catalog-resource";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft, ArrowRight, ChevronDown, MapPin, Search, ShoppingCart,
@@ -15,13 +16,14 @@ import { LocationPicker, type LocationPickerResult } from "../location-picker";
 
 const regions = ["仰光 Yangon", "曼德勒 Mandalay", "内比都 Naypyidaw", "掸邦 Shan", "克钦邦 Kachin", "若开邦 Rakhine"];
 
-export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount, user }: {
+export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount, user, authLoading=false }: {
   onNavigate: (view: View) => void;
   onProduct: (id: string) => void;
   onSearch: (keyword: string) => void;
   onService: (name: string) => void;
   cartCount: number;
   user: AuthUser | null;
+  authLoading?: boolean;
 }) {
   const [keyword, setKeyword] = useState("");
   const [searching, setSearching] = useState(false);
@@ -29,12 +31,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   const [regionOpen, setRegionOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<SavedCurrentLocation | null>(null);
   const [locationPickerOpen, setLocationPickerOpen] = useState(false);
-  const [products, setProducts] = useState<ProductData[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
+  const catalog = useCatalogResource("/api/catalog");
+  const products = catalog.data?.products || [];
+  const productsLoading = catalog.loading;
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setRegion(readRegion()); setCurrentLocation(readCurrentLocation()); }, []);
-  useEffect(() => { let active=true; fetch("/api/catalog",{cache:"no-store"}).then(r=>r.json()).then(data=>{if(active)setProducts(data.products||[])}).catch(()=>active&&setProducts([])).finally(()=>active&&setProductsLoading(false)); return()=>{active=false}; }, []);
 
   const beginSearch = () => {
     setSearching(true);
@@ -102,6 +104,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         </div>
       </header>
 
+      {catalog.error && <p role="alert" className="px-4 pt-3 text-sm">{catalog.error}</p>}
       <section className="px-4 pt-5">
         <div className="katu-service-grid grid grid-cols-5 gap-y-3 rounded-3xl bg-white px-2 py-3 shadow-[0_8px_28px_rgba(80,98,116,.06)]">
           {services.map(({ name, icon: Icon, tone }) => (
@@ -115,7 +118,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         </div>
       </section>
 
-      <section className={`mt-4 grid gap-3 px-4 ${user?.role === "user" || !user ? "grid-cols-2" : "grid-cols-1"}`}>
+      <section aria-busy={authLoading} style={authLoading?{visibility:"hidden"}:undefined} className={`mt-4 grid gap-3 px-4 ${user?.role === "user" || !user ? "grid-cols-2" : "grid-cols-1"}`}>
         {(!user || user.role === "user") && (
           <button type="button" onClick={() => onNavigate("merchantApply")}
             className="relative min-h-[96px] overflow-hidden rounded-3xl bg-[#e7eef3] p-4 text-left active:scale-[.98]">
@@ -140,7 +143,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         <div className="px-4"><SectionHeader title="热门推荐" onViewAll={() => onSearch("热门")} /></div>
         <div className="scrollbar-hidden flex snap-x gap-3 overflow-x-auto px-4 pb-2">
           {productsLoading && [1,2].map(item => <div key={item} className="h-[210px] min-w-[238px] animate-pulse rounded-3xl bg-slate-200" />)}
-          {!productsLoading && products.length === 0 && <div className="w-full rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">暂无已上架商品，商家发布后会显示在这里</div>}
+          {!productsLoading && !catalog.error && products.length === 0 && <div className="w-full rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">暂无已上架商品，商家发布后会显示在这里</div>}
           {products.slice(0,4).map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="min-w-[238px] snap-start overflow-hidden rounded-3xl bg-white text-left shadow-sm">
@@ -161,7 +164,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
         <SectionHeader title="猜你喜欢" onViewAll={() => onSearch("好物")} />
         <div className="space-y-3">
           {productsLoading && [1,2,3].map(item => <div key={item} className="h-[128px] animate-pulse rounded-3xl bg-slate-200" />)}
-          {!productsLoading && products.length === 0 && <div className="rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">还没有可购买的商品</div>}
+          {!productsLoading && !catalog.error && products.length === 0 && <div className="rounded-3xl bg-white px-5 py-8 text-center text-sm text-slate-400">还没有可购买的商品</div>}
           {products.map(product => (
             <button type="button" key={product.id} onClick={() => onProduct(product.id)}
               className="flex w-full gap-3 rounded-3xl bg-white p-2.5 text-left shadow-sm active:scale-[.99]">
