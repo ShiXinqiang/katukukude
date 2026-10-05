@@ -172,6 +172,9 @@ async function initializeMerchantSchema(): Promise<Pool> {
       sender_id TEXT NOT NULL REFERENCES users(id),client_nonce TEXT NOT NULL,content TEXT NOT NULL CHECK(char_length(content) BETWEEN 1 AND 2000),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(conversation_id,sender_id,client_nonce)
     );
+    ALTER TABLE shop_conversations ADD COLUMN IF NOT EXISTS merged_into TEXT REFERENCES shop_conversations(id);
+    ALTER TABLE shop_messages ADD COLUMN IF NOT EXISTS context JSONB;
+    CREATE UNIQUE INDEX IF NOT EXISTS shop_conversations_pair_idx ON shop_conversations(buyer_id,merchant_id) WHERE merged_into IS NULL;
     CREATE INDEX IF NOT EXISTS shop_conversations_buyer_idx ON shop_conversations(buyer_id,updated_at DESC);
     CREATE INDEX IF NOT EXISTS shop_conversations_merchant_idx ON shop_conversations(merchant_id,updated_at DESC);
     CREATE INDEX IF NOT EXISTS shop_messages_thread_idx ON shop_messages(conversation_id,seq);
