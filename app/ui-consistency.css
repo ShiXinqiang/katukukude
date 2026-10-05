@@ -101,7 +101,7 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 .katu-dashboard-dialog :where(input,textarea,select):focus-visible { outline: 2px solid #627b94; outline-offset: 2px; }
 
 /* Keep forms readable and reachable on small touch screens and above keyboards. */
-@media (max-width: 640px) and (pointer: coarse) {
+@media (pointer: coarse) {
   :root .katu-app-shell :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]),
   .katu-dashboard :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]) { font-size:16px !important; }
 }
@@ -121,7 +121,7 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 .katu-app-shell:has(:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([readonly]),textarea,[contenteditable="true"]):focus) .katu-floating-nav {
   display: none !important;
 }
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) {
   :root[data-katu-theme] .katu-app-shell { font-size: 14px; line-height: 1.5; }
   :root[data-katu-theme] .katu-app-shell :is(.text-xs,[class~="text-[9px]"],[class~="text-[10px]"],[class~="text-[11px]"],[class~="text-[12px]"]) { font-size: 12px; line-height: 1.45; }
   :root[data-katu-theme] .katu-app-shell header h1 { font-size: 16px; }
@@ -159,7 +159,18 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 }
 
 /* Stable page chrome and non-flashing placeholders on phones. */
-@media (max-width: 640px) {
+@media (max-width: 640px), (pointer: coarse) {
   :root[data-katu-theme] .katu-app-shell main > header { padding-top: max(12px,env(safe-area-inset-top)); padding-bottom: 12px; }
   :root[data-katu-theme] .katu-app-shell .animate-pulse { animation: none; background-color: var(--katu-dialog-inner) !important; }
 }
+
+/* Profile sections stay in normal flow; their paint order must not depend on backdrop-filter. */
+:root[data-katu-theme] body .katu-app-shell .katu-profile-hero {
+  background: var(--katu-dialog) !important;
+  color: rgb(var(--katu-text));
+  border-bottom: 1px solid var(--katu-border);
+}
+:root[data-katu-theme] body .katu-app-shell .katu-profile-orders {
+  background: var(--katu-dialog) !important;
+}
+.katu-profile-content { margin-top: 0; padding-bottom: env(safe-area-inset-bottom,0px); }
