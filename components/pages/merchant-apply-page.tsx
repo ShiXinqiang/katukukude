@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -91,6 +91,14 @@ export function MerchantApplyPage({
   const [recognizingAddress, setRecognizingAddress] = useState(false);
   const [uploading, setUploading] = useState("");
   const [message, setMessage] = useState("");
+  const messageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (message) messageRef.current?.scrollIntoView({
+      block: "center",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [message]);
 
   useEffect(() => {
     if (!user) return;
@@ -297,7 +305,7 @@ export function MerchantApplyPage({
 
       <div className="space-y-3 px-4 py-4">
         {application && <StatusCard application={application} />}
-        {message && <div className="rounded-xl bg-white px-4 py-3 text-xs leading-5 text-[#667f98] shadow-sm">{message}</div>}
+        {message && <div ref={messageRef} role="alert" className="scroll-mt-28 rounded-xl bg-white px-4 py-3 text-xs leading-5 text-[#667f98] shadow-sm">{message}</div>}
 
         {loading ? (
           <div className="space-y-3">{[1,2,3].map((item) => <div key={item} className="h-40 animate-pulse rounded-2xl bg-white" />)}</div>
@@ -322,8 +330,8 @@ export function MerchantApplyPage({
 
             <FormCard title="营业地址" subtitle="可输入地址识别，也可从 Google Maps 复制位置">
               <div className="py-3">
-                <label className="text-xs text-slate-500">输入完整地址或附近地标 *</label>
-                <textarea value={form.address} onChange={(event) => update("address", event.target.value)} disabled={locked} rows={3} maxLength={1000} placeholder="例如：掸邦、南桑县、孟乃镇区、村寨、社区、街道门牌或附近商店名称" className="katu-field mt-2 w-full resize-none bg-transparent text-sm leading-6 text-slate-700 outline-none placeholder:text-slate-300" />
+                <label htmlFor="merchant-address" className="text-xs text-slate-500">输入完整地址或附近地标 *</label>
+                <textarea id="merchant-address" value={form.address} onChange={(event) => update("address", event.target.value)} disabled={locked} rows={3} maxLength={1000} placeholder="例如：掸邦、南桑县、孟乃镇区、村寨、社区、街道门牌或附近商店名称" className="katu-field mt-2 w-full resize-none bg-transparent text-sm leading-6 text-slate-700 outline-none placeholder:text-slate-300" />
                 {!locked && <div className="mt-3 grid grid-cols-2 gap-2"><button type="button" disabled={recognizingAddress} onClick={() => void recognizeTypedAddress()} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#7189a1] text-xs font-semibold text-white disabled:opacity-50">{recognizingAddress ? <Loader2 size={15} className="animate-spin" /> : <LocateFixed size={15} />}识别详细地址</button><button type="button" onClick={() => setLocationPickerOpen(true)} className="flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600"><MapPin size={15} />从地图选择</button></div>}
                 <p className="mt-2 text-[10px] leading-4 text-slate-400">识别后会自动填写下面的省邦、城市、镇区和导航链接，所有内容都可以自行修改。</p>
               </div>
@@ -332,22 +340,22 @@ export function MerchantApplyPage({
               <Field label="镇区 Township *" value={form.township} onChange={(value) => update("township", value)} disabled={locked} maxLength={100} placeholder="识别后自动填写，也可手动修改" />
               <div className="py-3">
                 <div className="flex items-center justify-between"><span className="text-xs text-slate-500">地图 / 导航链接（可选）</span>{!locked && <button type="button" onClick={() => setLocationPickerOpen(true)} className="flex items-center gap-1 text-[11px] text-[#667f98]"><LocateFixed size={14} />自动填写</button>}</div>
-                <input value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="katu-field mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
+                <input aria-label="地图 / 导航链接（可选）" value={form.mapLink} onChange={(event) => update("mapLink", event.target.value)} disabled={locked} inputMode="url" placeholder="粘贴 Google Maps 或其他导航网页链接" className="katu-field mt-2 w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-300 disabled:text-slate-400" />
                 {form.mapLink && <a href={form.mapLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-[11px] text-[#667f98]"><ExternalLink size={13} />打开当前导航链接</a>}
               </div>
             </FormCard>
 
             <FormCard title="证明资料" subtitle="必须提供两张不同角度的店铺照片和一段现场视频">
               <div className="grid grid-cols-2 gap-3 py-3">
-                {[0,1].map((index) => <ProofTile key={index} title={`店铺照片 ${index + 1} *`} kind="store_photo" document={photos[index]} uploading={uploading} disabled={locked} accept="image/jpeg,image/png,image/webp" capture="environment" icon={Camera} onUpload={uploadDocument} onRemove={removeDocument} />)}
+                {[0,1].map((index) => <ProofTile key={index} title={`店铺照片 ${index + 1} *`} kind="store_photo" document={photos[index]} uploading={uploading} disabled={locked || Boolean(uploading)} accept="image/jpeg,image/png,image/webp" capture="environment" icon={Camera} onUpload={uploadDocument} onRemove={removeDocument} />)}
               </div>
               <div className="py-3">
-                <ProofTile title="现场录制视频 *" kind="store_video" document={video} uploading={uploading} disabled={locked} accept="video/mp4,video/webm,video/quicktime" capture="environment" icon={Video} wide onUpload={uploadDocument} onRemove={removeDocument} />
+                <ProofTile title="现场录制视频 *" kind="store_video" document={video} uploading={uploading} disabled={locked || Boolean(uploading)} accept="video/mp4,video/webm,video/quicktime" capture="environment" icon={Video} wide onUpload={uploadDocument} onRemove={removeDocument} />
                 <p className="mt-2 text-[10px] leading-4 text-slate-400">请从店铺门口开始录制并缓慢拍摄店内环境，视频不超过 30MB。</p>
               </div>
             </FormCard>
 
-            {!locked && <button type="submit" disabled={submitting} className="katu-primary fixed bottom-3 left-1/2 z-30 flex h-12 w-[calc(100%-32px)] max-w-[358px] -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-[#7189a1] text-sm font-semibold text-white shadow-lg disabled:opacity-50">{submitting && <Loader2 size={17} className="animate-spin" />}{application?.status === "rejected" ? "修改后重新提交" : "提交入驻申请"}</button>}
+            {!locked && <button type="submit" disabled={submitting || Boolean(uploading)} className="katu-primary fixed bottom-3 left-1/2 z-30 flex h-12 w-[calc(100%-32px)] max-w-[358px] -translate-x-1/2 items-center justify-center gap-2 rounded-full bg-[#7189a1] text-sm font-semibold text-white shadow-lg disabled:opacity-50">{submitting && <Loader2 size={17} className="animate-spin" />}{application?.status === "rejected" ? "修改后重新提交" : "提交入驻申请"}</button>}
           </form>
         )}
       </div>
@@ -382,7 +390,7 @@ function ProofTile({ title, kind, document, uploading, disabled, accept, capture
 }
 
 function PickerModal({ title, options, selected, onSelect, onClose }: { title: string; options: string[]; selected: string; onSelect: (value: string) => void; onClose: () => void }) {
-  return <div className="katu-overlay fixed inset-0 z-50 flex items-end justify-center bg-slate-900/35"><div className="max-h-[72vh] w-full max-w-[390px] overflow-hidden rounded-t-3xl bg-white"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><h3 className="font-bold text-slate-800">{title}</h3><button type="button" onClick={onClose} className="flex size-8 items-center justify-center rounded-full bg-[#f4f6f8]"><X size={16} /></button></div><div className="max-h-[60vh] overflow-y-auto p-3">{options.map((option) => <button type="button" key={option} onClick={() => onSelect(option)} className="flex w-full items-center rounded-xl px-3 py-3.5 text-left text-sm text-slate-600 hover:bg-[#f4f6f8]"><span className="flex-1">{option}</span>{selected === option && <Check size={17} className="text-[#7189a1]" />}</button>)}</div></div></div>;
+  return <div role="dialog" aria-modal="true" aria-label={title} className="katu-overlay fixed inset-0 z-50 flex items-end justify-center bg-slate-900/35"><div className="max-h-[72vh] w-full max-w-[390px] overflow-hidden rounded-t-3xl bg-white"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><h3 className="font-bold text-slate-800">{title}</h3><button type="button" onClick={onClose} aria-label="关闭选择窗口" className="flex size-8 items-center justify-center rounded-full bg-[#f4f6f8]"><X size={16} /></button></div><div className="max-h-[60vh] overflow-y-auto p-3">{options.map((option) => <button type="button" key={option} onClick={() => onSelect(option)} className="flex w-full items-center rounded-xl px-3 py-3.5 text-left text-sm text-slate-600 hover:bg-[#f4f6f8]"><span className="flex-1">{option}</span>{selected === option && <Check size={17} className="text-[#7189a1]" />}</button>)}</div></div></div>;
 }
 
 function LocationGuide({ onClose, onLocate, onOpenMaps }: { onClose: () => void; onLocate: () => void; onOpenMaps: () => void }) {
