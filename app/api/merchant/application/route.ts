@@ -92,8 +92,8 @@ export async function POST(request: Request) {
     const tgAccount = cleanOptionalText(body.tgAccount, 100);
     const wechatAccount = cleanOptionalText(body.wechatAccount, 100);
     const mapLink = cleanOptionalText(body.mapLink, 1000);
-    const locationLat = Number(body.locationLat);
-    const locationLng = Number(body.locationLng);
+    const locationLat = body.locationLat === "" || body.locationLat == null ? Number.NaN : Number(body.locationLat);
+    const locationLng = body.locationLng === "" || body.locationLng == null ? Number.NaN : Number(body.locationLng);
 
     if (!storeNameCn && !storeNameMm) {
       return NextResponse.json({ message: "中文店名和缅文店名至少填写一个" }, { status: 400 });
@@ -138,6 +138,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "该申请已经通过审核" }, { status: 409 });
     }
 
+    if (existing.rows[0]?.status === "pending") return NextResponse.json({ message: "资料审核中，暂不能重复提交" }, { status: 409 });
+
     const id = existing.rows[0]?.id || createCommerceId();
     const values = [
       id, user.id, storeNameCn, storeNameMm, phone, email, tgAccount, wechatAccount,
@@ -174,6 +176,7 @@ export async function POST(request: Request) {
           document_ids = EXCLUDED.document_ids,
           status = 'pending', review_note = NULL, reviewed_by = NULL,
           reviewed_at = NULL, submitted_at = NOW(), updated_at = NOW()
+        WHERE merchant_applications.status = 'rejected'
         RETURNING id, user_id AS "userId", store_name_cn AS "storeNameCn",
           store_name_mm AS "storeNameMm", phone, email,
           tg_account AS "tgAccount", wechat_account AS "wechatAccount",
@@ -185,6 +188,7 @@ export async function POST(request: Request) {
           updated_at AS "updatedAt", reviewed_at AS "reviewedAt"`,
       values,
     );
+    if (!result.rows[0]) return NextResponse.json({ message: "申请状态已变化，请刷新后重试" }, { status: 409 });
     await database.query(
       "UPDATE merchant_application_documents SET application_id = $1 WHERE user_id = $2 AND id = ANY($3::text[])",
       [id, user.id, documentIds],

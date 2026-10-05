@@ -243,8 +243,8 @@ export function MerchantApplyPage({
       setMessage("中文店名和缅文店名至少填写一个");
       return;
     }
-    if (form.description.trim().length < 10) {
-      setMessage("店铺介绍至少填写 10 个字");
+    if (form.description.trim().length < 10 || form.description.trim().length > 50) {
+      setMessage("店铺介绍需为 10–50 个字");
       return;
     }
     if (photos.length < 2 || !video) {
