@@ -25,7 +25,7 @@ export function BottomNav({
   ];
 
   return (
-    <nav className="katu-floating-nav fixed left-1/2 z-40 flex max-w-[370px] -translate-x-1/2 items-end justify-around px-2 pb-2 pt-2">
+    <nav aria-label="主导航" className="katu-floating-nav fixed left-1/2 z-40 flex max-w-[370px] -translate-x-1/2 items-end justify-around px-2 pb-2 pt-2">
       {tabs.map(({ view, label, icon: Icon }) => {
         const active = activeView === view;
 
@@ -35,10 +35,10 @@ export function BottomNav({
               key={view}
               type="button"
               onClick={() => onNavigate("scan")}
-              className="flex min-w-[60px] flex-col items-center gap-1 text-[10px] text-slate-500"
+              className="flex min-w-0 flex-1 min-h-11 flex-col items-center gap-1 text-[10px] text-slate-500"
             >
-              <span className="katu-floating-button katu-primary -mt-8 flex size-[58px] items-center justify-center rounded-full border border-white/40 text-white ring-4 ring-[#fff4e9]/70 backdrop-blur-xl">
-                <Icon size={25} strokeWidth={1.8} />
+              <span className="katu-floating-button katu-primary -mt-3 flex size-[46px] items-center justify-center rounded-full border border-white/40 text-white ring-4 ring-[#fff4e9]/70 backdrop-blur-xl">
+                <Icon size={22} strokeWidth={1.8} />
               </span>
               <span>扫一扫</span>
             </button>
@@ -49,9 +49,10 @@ export function BottomNav({
           <button
             key={view}
             type="button"
+            aria-current={active ? "page" : undefined}
             onClick={() => onNavigate(view)}
             className={cn(
-              "flex min-w-[56px] flex-col items-center gap-1 text-[10px] transition",
+              "flex min-w-0 flex-1 min-h-11 justify-center flex-col items-center gap-1 text-[10px] transition",
               active ? "text-[#667f99]" : "text-slate-400",
             )}
           >

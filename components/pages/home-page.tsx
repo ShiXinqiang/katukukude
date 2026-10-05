@@ -69,7 +69,7 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
   };
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f5f7f9] pb-28">
+    <main className="katu-home min-h-screen overflow-hidden bg-[#f5f7f9] pb-28">
       <header className="sticky top-0 z-30 border-b border-slate-100/80 bg-[#f5f7f9]/95 px-4 pb-3 pt-[max(16px,env(safe-area-inset-top))] backdrop-blur-xl">
         <div className="flex h-11 items-center gap-2">
           <div aria-hidden={searching} className={`shrink-0 overflow-hidden transition-all duration-300 ${searching ? "hidden" : "w-[120px] opacity-100"}`}>
@@ -103,12 +103,12 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
       </header>
 
       <section className="px-4 pt-5">
-        <div className="grid grid-cols-5 gap-y-5 rounded-3xl bg-white px-2 py-5 shadow-[0_8px_28px_rgba(80,98,116,.06)]">
+        <div className="katu-service-grid grid grid-cols-5 gap-y-3 rounded-3xl bg-white px-2 py-3 shadow-[0_8px_28px_rgba(80,98,116,.06)]">
           {services.map(({ name, icon: Icon, tone }) => (
             <button type="button" key={name} onClick={() => clickService(name)}
               className="group flex flex-col items-center gap-2 text-[12px] font-medium text-slate-600 ">
-              <span className={`flex size-12 items-center justify-center rounded-2xl transition ${tone}`}>
-                <Icon size={23} strokeWidth={1.8} />
+              <span className={`flex size-10 items-center justify-center rounded-2xl transition ${tone}`}>
+                <Icon size={21} strokeWidth={1.8} />
               </span><span>{name}</span>
             </button>
           ))}
@@ -118,19 +118,19 @@ export function HomePage({ onNavigate, onProduct, onSearch, onService, cartCount
       <section className={`mt-4 grid gap-3 px-4 ${user?.role === "user" || !user ? "grid-cols-2" : "grid-cols-1"}`}>
         {(!user || user.role === "user") && (
           <button type="button" onClick={() => onNavigate("merchantApply")}
-            className="relative min-h-[116px] overflow-hidden rounded-3xl bg-[#e7eef3] p-4 text-left active:scale-[.98]">
+            className="relative min-h-[96px] overflow-hidden rounded-3xl bg-[#e7eef3] p-4 text-left active:scale-[.98]">
             <div className="absolute -right-5 -top-5 size-24 rounded-full bg-white/45" />
             <Store size={23} className="relative text-[#647f98]" />
-            <p className="relative mt-3 text-[15px] font-bold text-slate-800">商家入驻</p>
+            <p className="relative mt-2 text-[14px] font-bold text-slate-800">商家入驻</p>
             <p className="relative mt-1 text-[11px] text-slate-500">提交资料 · 平台审核</p>
             <ArrowRight size={16} className="absolute bottom-4 right-4 text-[#7890a6]" />
           </button>
         )}
         <button type="button" onClick={() => onNavigate("partner")}
-          className="relative min-h-[116px] overflow-hidden rounded-3xl bg-[#f3eae3] p-4 text-left active:scale-[.98]">
+          className="relative min-h-[96px] overflow-hidden rounded-3xl bg-[#f3eae3] p-4 text-left active:scale-[.98]">
           <div className="absolute -bottom-7 -right-3 size-24 rounded-full bg-white/45" />
           <UsersRound size={23} className="relative text-[#ad806a]" />
-          <p className="relative mt-3 text-[15px] font-bold text-slate-800">合作伙伴</p>
+          <p className="relative mt-2 text-[14px] font-bold text-slate-800">合作伙伴</p>
           <p className="relative mt-1 text-[11px] text-slate-500">资源合作 · 共创机会</p>
           <ArrowRight size={16} className="absolute bottom-4 right-4 text-[#ad806a]" />
         </button>

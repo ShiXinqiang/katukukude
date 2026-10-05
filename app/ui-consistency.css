@@ -115,3 +115,21 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
   .katu-app-shell footer button { padding-left:12px; padding-right:12px; }
   .katu-app-shell footer b { font-size:18px; }
 }
+
+/* Compact phone layout; do not scale the page or shrink editable text. */
+:root[data-input-focused="true"] .katu-floating-nav,
+.katu-app-shell:has(:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([readonly]),textarea,[contenteditable="true"]):focus) .katu-floating-nav {
+  display: none !important;
+}
+@media (max-width: 640px) {
+  :root[data-katu-theme] .katu-app-shell { font-size: 14px; line-height: 1.5; }
+  :root[data-katu-theme] .katu-app-shell :is(.text-xs,[class~="text-[9px]"],[class~="text-[10px]"],[class~="text-[11px]"],[class~="text-[12px]"]) { font-size: 12px; line-height: 1.45; }
+  :root[data-katu-theme] .katu-app-shell header h1 { font-size: 16px; }
+  :root[data-katu-theme] .katu-app-shell h2 { font-size: 15px; }
+  :root[data-katu-theme] .katu-app-shell h3 { font-size: 14px; }
+  :root[data-katu-theme] .katu-app-shell .katu-floating-nav { height: 60px; padding: 6px 4px; border-radius: 22px; }
+  :root[data-katu-theme] .katu-app-shell .katu-floating-nav button { font-size: 11px; line-height: 1.3; }
+  .katu-home > section:first-of-type { padding-top: 12px; }
+  .katu-home > section.mt-7 { margin-top: 20px; }
+  .katu-service-grid > button { gap: 6px; }
+}
