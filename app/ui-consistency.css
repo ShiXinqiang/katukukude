@@ -133,3 +133,27 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
   .katu-home > section.mt-7 { margin-top: 20px; }
   .katu-service-grid > button { gap: 6px; }
 }
+
+/* Phone scrolling: static surfaces avoid continuously filtering moving content. */
+@media (max-width: 640px), (pointer: coarse) {
+  :root[data-katu-theme] body { background: var(--katu-page) !important; background-attachment: scroll !important; }
+  body::before, body::after { display: none; }
+  :root[data-katu-theme] body .katu-app-shell,
+  :root[data-katu-theme] body .katu-app-shell * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  :root[data-katu-theme] body .katu-app-shell { box-shadow: none !important; }
+  :root[data-katu-theme] body .katu-app-shell :is(section,article,aside,div,button,a)[class*="rounded"] {
+    box-shadow: none !important;
+  }
+  :root[data-katu-theme] body .katu-app-shell :is(header,footer,.katu-floating-nav)[class] {
+    background: var(--katu-dialog) !important;
+  }
+  :root[data-katu-theme] body .katu-app-shell :is(button,a,section,article) {
+    transition-property: color,background-color,border-color,opacity !important;
+    transition-duration: .12s !important;
+  }
+  :root[data-katu-theme] body .katu-app-shell button::after { content: none; }
+  :root[data-katu-theme] body .katu-app-shell button:is(:hover,:active) { filter: none !important; }
+}
