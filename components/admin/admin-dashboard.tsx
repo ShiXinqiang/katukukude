@@ -1433,7 +1433,7 @@ function MerchantApplicationsPanel({
                   <p className="mt-2 leading-5 text-slate-400">{application.description}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {application.documentIds.map((id, index) => <a key={id} href={`/api/merchant/application/documents/${id}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#edf2f5] px-3 py-2 text-xs text-[#667f98]"><FileText size={14} />{index < 2 ? `店铺照片 ${index + 1}` : "现场视频"}</a>)}
+                  {application.documentIds.map((id, index) => <a key={id} href={`/api/merchant/application/documents/${id}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#edf2f5] px-3 py-2 text-xs text-[#667f98]"><FileText size={14} />{`查看证明资料 ${index + 1}`}</a>)}
                   {application.mapLink && <a href={application.mapLink} target="_blank" rel="noreferrer" className="rounded-full bg-[#edf4ef] px-3 py-2 text-xs text-[#5f816e]">打开地图 / 导航</a>}
                 </div>
                 {application.reviewNote && <p className="mt-3 rounded-xl bg-[#fff7f3] p-3 text-xs text-[#a96f58]">审核备注：{application.reviewNote}</p>}
