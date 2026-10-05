@@ -5,7 +5,7 @@ type Catalog = {total?:number;page?:number;pages?:number;pageSize?:number;catego
 const cache = new Map<string, Catalog>();
 export function useCatalogResource(url: string, delay = 0) {
  const [snapshot, setSnapshot] = useState(() => ({ url, data: cache.get(url), loading: !cache.has(url), error: "" }));
- const current = snapshot.url === url ? snapshot : { url, data: cache.get(url), loading: true, error: "" };
+ const current = snapshot.url === url ? snapshot : { url, data: cache.get(url), loading: !cache.has(url), error: "" };
  useEffect(() => {
   const controller = new AbortController();
   const cached = cache.get(url);
