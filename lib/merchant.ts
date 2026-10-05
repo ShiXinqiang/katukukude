@@ -98,6 +98,16 @@ export async function ensureMerchantSchema(): Promise<Pool> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    DO $migration$
+    BEGIN
+      IF EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='products'::regclass AND conname='products_status_check' AND position('pending' in pg_get_constraintdef(oid))=0) THEN
+        ALTER TABLE products DROP CONSTRAINT products_status_check;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='products'::regclass AND conname='products_status_check') THEN
+        ALTER TABLE products ADD CONSTRAINT products_status_check CHECK(status IN ('draft','pending','active','rejected','archived'));
+      END IF;
+    END $migration$;
+
     ALTER TABLE products
       ADD COLUMN IF NOT EXISTS subtitle VARCHAR(160),
       ADD COLUMN IF NOT EXISTS original_price NUMERIC(14,2),

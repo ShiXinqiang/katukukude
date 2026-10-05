@@ -99,3 +99,19 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 
 .katu-dashboard .katu-dialog-close { display: inline-flex; flex: 0 0 40px; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 50%; color: #475569; background: #f1f5f9; }
 .katu-dashboard-dialog :where(input,textarea,select):focus-visible { outline: 2px solid #627b94; outline-offset: 2px; }
+
+/* Keep forms readable and reachable on small touch screens and above keyboards. */
+@media (max-width: 640px) and (pointer: coarse) {
+  :root .katu-app-shell :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]),
+  .katu-dashboard :is(input,textarea,select):not([type="checkbox"]):not([type="radio"]) { font-size:16px !important; }
+}
+.katu-app-shell footer.fixed { bottom:var(--katu-keyboard-inset,0px); padding-bottom:env(safe-area-inset-bottom,0px); height:auto; min-height:76px; }
+.katu-app-shell :is(input,textarea,select) { scroll-margin-block: 90px; }
+.katu-dashboard-dialog > div { max-height:calc(var(--katu-visible-height,100dvh) - 16px); }
+:root[data-keyboard-open="true"] .katu-floating-nav { display:none; }
+:root[data-keyboard-open="true"] .katu-app-shell button[type="submit"].fixed { bottom:calc(var(--katu-keyboard-inset,0px) + 12px); }
+@media (max-width: 360px) {
+  .katu-app-shell footer { gap:6px; padding-left:10px; padding-right:10px; }
+  .katu-app-shell footer button { padding-left:12px; padding-right:12px; }
+  .katu-app-shell footer b { font-size:18px; }
+}
