@@ -10,6 +10,7 @@
     "db:migrate": "node scripts/migrate-source-to-supabase.mjs"
   },
   "dependencies": {
+    "jsqr": "1.4.0",
     "lucide-react": "^0.468.0",
     "next": "14.2.35",
     "pg": "^8.13.1",
