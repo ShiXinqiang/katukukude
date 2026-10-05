@@ -174,3 +174,66 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
   background: var(--katu-dialog) !important;
 }
 .katu-profile-content { margin-top: 0; padding-bottom: env(safe-area-inset-bottom,0px); }
+
+/* Mall: compact navigation, consistent product cards, restrained theme-safe surfaces. */
+:root[data-katu-theme] body .katu-app-shell .katu-mall { background:var(--katu-page) !important; color:rgb(var(--katu-text)); }
+.katu-mall .mall-header { position:sticky; top:0; z-index:25; padding:12px 12px 0 !important; background:var(--katu-dialog); border-bottom:1px solid var(--katu-border); }
+.mall-search-row { display:flex; align-items:center; gap:4px; }
+.katu-mall .mall-search { display:flex; align-items:center; gap:6px; flex:1; min-width:0; min-height:42px; border-radius:24px; padding:3px 4px 3px 12px; }
+.mall-icon-button { position:relative; display:flex; align-items:center; justify-content:center; flex:0 0 36px; height:44px; }
+.mall-clear { display:flex; align-items:center; justify-content:center; flex:0 0 26px; height:36px; }
+:root[data-katu-theme] body .katu-app-shell .mall-search-submit { flex:0 0 auto; min-height:34px; border-radius:20px; padding:0 10px; background:#ffbf47 !important; color:#30210b !important; font-size:12px; font-weight:600; }
+.mall-cart-badge { position:absolute; right:0; top:0; padding:0 4px; border-radius:10px; background:#df4b32; color:white; font-size:10px; }
+.mall-categories { display:flex; gap:20px; overflow-x:auto; scrollbar-width:none; margin-top:4px; }
+.mall-categories button { position:relative; min-height:44px; white-space:nowrap; font-size:14px; opacity:.65; }
+.mall-categories button.selected { opacity:1; font-weight:700; border-bottom:3px solid #ffbf47; }
+.mall-sort { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); border-top:1px solid var(--katu-border); }
+.mall-sort button { display:flex; align-items:center; justify-content:center; gap:4px; min-height:42px; font-size:12px; opacity:.6; }
+.mall-sort button[aria-pressed="true"] { opacity:1; font-weight:700; }
+.mall-filter-dot { width:5px; height:5px; border-radius:50%; background:#ef9e18; }
+.mall-content { padding:10px 10px 0; scroll-margin-top:145px; }
+.mall-discovery { display:flex; gap:7px; margin-bottom:10px; }
+.mall-discovery button { flex:1; min-height:34px; padding:0 4px; border:1px solid var(--katu-border); border-radius:8px; font-size:11px; white-space:nowrap; }
+:root[data-katu-theme] body .katu-app-shell .mall-discovery button[aria-pressed="true"] { border-color:#eab344; color:rgb(var(--katu-text)) !important; background:var(--katu-dialog-inner) !important; }
+.mall-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; align-items:start; }
+:root[data-katu-theme] body .katu-app-shell .mall-card { min-width:0; overflow:hidden; border-radius:12px; background:var(--katu-dialog) !important; box-shadow:none !important; }
+.mall-photo { position:relative; aspect-ratio:1; overflow:hidden; }
+.mall-photo > button:first-child { display:block; width:100%; height:100%; }
+:root[data-katu-theme] body .katu-app-shell .mall-save { position:absolute; right:4px; top:4px; width:36px; height:36px; display:flex; justify-content:center; align-items:center; border-radius:50%; background:var(--katu-dialog) !important; color:rgb(var(--katu-text)) !important; opacity:.9; }
+.mall-card-body { padding:9px 10px 0; }
+.mall-product-link { display:block; width:100%; text-align:left; }
+:root[data-katu-theme] body .katu-app-shell .mall-product-link h2 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; min-height:38px; font-size:13px !important; font-weight:500; line-height:19px; }
+:root[data-katu-theme] body .katu-app-shell .mall-official { display:inline; margin-right:4px; padding:1px 3px; border-radius:3px; background:#ffbf47 !important; color:#30210b !important; font-style:normal; font-size:10px; }
+.mall-benefits { display:flex; gap:4px; min-height:22px; padding-top:4px; overflow:hidden; }
+:root[data-katu-theme] body .katu-app-shell .mall-benefits span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid var(--katu-border); border-radius:3px; padding:0 3px; font-size:10px !important; line-height:16px; }
+.mall-price-row { display:flex; gap:3px; align-items:center; min-height:43px; }
+.mall-price { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px; min-width:0; flex:1; text-align:left; }
+:root[data-katu-theme] body .katu-app-shell .mall-price :is(small,strong) { color:#e88432 !important; }
+:root[data-katu-theme] body .katu-app-shell .mall-price small { font-size:10px !important; }
+:root[data-katu-theme] body .katu-app-shell .mall-price strong { font-size:19px; font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
+:root[data-katu-theme] body .katu-app-shell .mall-add { display:flex; align-items:center; justify-content:center; flex:0 0 40px; min-height:40px; border-radius:50%; background:#ffbf47 !important; color:#30210b !important; }
+:root[data-katu-theme] body .katu-app-shell .mall-add span { font-size:10px !important; color:#30210b !important; }
+.mall-meta { display:flex; justify-content:space-between; gap:3px; min-height:18px; opacity:.6; }
+:root[data-katu-theme] body .katu-app-shell .mall-meta :is(s,span) { font-size:10px !important; }
+.mall-shop { display:flex; align-items:center; justify-content:space-between; gap:4px; width:100%; min-height:36px; opacity:.65; }
+:root[data-katu-theme] body .katu-app-shell .mall-shop span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:11px !important; }
+.mall-store-heading,.mall-filter-summary { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; padding:6px 4px; font-size:12px; }
+.mall-store-heading span,.mall-store-heading button { display:flex; align-items:center; gap:6px; }
+.mall-filter-summary span { min-width:0; overflow-wrap:anywhere; }
+.mall-filter-summary button,.mall-store-heading button { flex-shrink:0; min-height:36px; }
+.mall-empty { display:flex; flex-direction:column; align-items:center; gap:12px; padding:48px 16px; text-align:center; }
+.mall-empty p { font-size:12px; opacity:.6; }
+.mall-empty button { min-height:44px; padding:0 20px; border:1px solid var(--katu-border); border-radius:22px; font-size:13px; }
+.mall-skeleton { padding-bottom:12px; }
+.mall-skeleton > div { aspect-ratio:1; background:var(--katu-dialog-inner); }
+.mall-skeleton > span { display:block; height:12px; margin:12px 12px 0; border-radius:4px; background:var(--katu-dialog-inner); }
+.mall-pagination { display:flex; justify-content:center; align-items:center; gap:24px; min-height:64px; font-size:11px; opacity:.65; }
+.mall-pagination button { min-height:44px; padding:0 12px; }
+.mall-toast { position:fixed; bottom:94px; left:50%; transform:translateX(-50%); display:flex; align-items:center; justify-content:space-between; gap:10px; width:calc(100% - 32px); max-width:358px; border-radius:12px; background:var(--katu-dialog); border:1px solid var(--katu-border); padding:6px 12px; z-index:45; font-size:12px; }
+.mall-toast button { min-height:40px; white-space:nowrap; }
+.mall-menu { width:100%; max-width:390px; padding:20px 20px max(20px,env(safe-area-inset-bottom)); border-radius:20px 20px 0 0; background:var(--katu-dialog); }
+.mall-menu > div,.mall-menu > button { display:flex; align-items:center; justify-content:space-between; min-height:48px; width:100%; }
+.mall-menu > button { border-top:1px solid var(--katu-border); font-size:14px; }
+:root[data-katu-theme="light"] body .katu-app-shell .mall-price :is(small,strong) { color:#b65316 !important; }
+:root[data-katu-theme="dark"] body .katu-app-shell .mall-price :is(small,strong) { color:#ffbf47 !important; }
+.mall-sort button,.mall-meta { opacity:.7; }
