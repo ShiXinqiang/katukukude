@@ -10,6 +10,7 @@ import { CheckoutPage } from "../components/pages/checkout-page";
 import { MallPage } from "../components/pages/mall-page";
 import { HomePage } from "../components/pages/home-page";
 import { LoginPage } from "../components/pages/login-page";
+import {ShopConversation} from "../components/shop-chat";
 import { MessagesPage } from "../components/pages/messages-page";
 import { MerchantApplyPage } from "../components/pages/merchant-apply-page";
 import { ProductPage } from "../components/pages/product-page";
@@ -36,9 +37,10 @@ export default function Page(){
  return <div className="katu-site-background min-h-screen bg-[#dfe6ec]"><div className="katu-app-shell relative mx-auto min-h-screen w-full max-w-[390px] overflow-x-hidden">
   {view==="home"&&<HomePage onNavigate={navigate} onProduct={openProduct} onSearch={openSearch} onService={openService} cartCount={cartCount} user={user} authLoading={!authReady}/>}
   {view==="discover"&&<MallPage onProduct={openProduct} onNavigate={target=>{if(target==="orders"&&!user)navigate("login");else navigate(target)}} cartCount={cartCount}/>}
-  {view==="messages"&&<MessagesPage/>}
+  {view==="messages"&&<MessagesPage onOpen={id=>navigate("conversation",{conversationId:id})} onLogin={()=>navigate("login")}/>}
+  {view==="conversation"&&<ShopConversation onLogin={()=>navigate("login")} key={route.conversationId} id={route.conversationId} onBack={goBack}/>}
   {view==="profile"&&(!authReady?<main className="min-h-screen p-4" aria-busy="true"><p>正在读取账号…</p></main>:<ProfilePage onOrders={filter=>navigate("orders",{ordersFilter:filter})} onNavigate={navigate} user={user} onLogout={async()=>{await fetch("/api/auth/logout",{method:"POST",credentials:"include"});setUser(null);replaceView("home",{depth:0})}}/>)}
-  {view==="product"&&<ProductPage onCart={()=>navigate("cart")} key={selectedProductId} productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>navigate("checkout",{checkoutTotal:total})}/>}
+  {view==="product"&&<ProductPage onContact={id=>navigate("conversation",{conversationId:id})} onLogin={()=>navigate("login")} onCart={()=>navigate("cart")} key={selectedProductId} productId={selectedProductId} onBack={goBack} onAddToCart={()=>setCartCount(cartQuantity())} onBuy={total=>navigate("checkout",{checkoutTotal:total})}/>}
   {view==="merchantApply"&&<MerchantApplyPage user={user} onBack={goBack} onNavigate={navigate}/>}
   {view==="login"&&<LoginPage onBack={goBack} onSuccess={u=>{setUser(u);goBack()}}/>}
   {view==="cart"&&<CartPage onBack={goBack} onCheckout={total=>navigate("checkout",{checkoutTotal:total})}/>}
@@ -49,7 +51,7 @@ export default function Page(){
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}
-  {view==="orders"&&<OrdersPage onReviews={()=>navigate("likes")} initialFilter={ordersFilter} onBack={goBack}/>}
+  {view==="orders"&&<OrdersPage onContact={id=>navigate("conversation",{conversationId:id})} onReviews={()=>navigate("likes")} initialFilter={ordersFilter} onBack={goBack}/>}
   {view==="favorites"&&<FavoritesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="likes"&&<LikesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="settings"&&<SettingsPage onBack={goBack} onNavigate={navigate}/>}

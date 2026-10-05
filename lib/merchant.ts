@@ -161,6 +161,24 @@ async function initializeMerchantSchema(): Promise<Pool> {
     CREATE UNIQUE INDEX IF NOT EXISTS after_sales_open_order_idx ON after_sales(order_id) WHERE status IN ('requested','approved','refunded');
     ALTER TABLE after_sales ENABLE ROW LEVEL SECURITY;
 
+    CREATE TABLE IF NOT EXISTS shop_conversations (
+      id TEXT PRIMARY KEY,buyer_id TEXT NOT NULL REFERENCES users(id),merchant_id TEXT NOT NULL REFERENCES merchants(id),
+      context_key TEXT NOT NULL,context JSONB NOT NULL,buyer_read_seq BIGINT NOT NULL DEFAULT 0,seller_read_seq BIGINT NOT NULL DEFAULT 0,
+      last_message TEXT NOT NULL DEFAULT '',created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(buyer_id,merchant_id,context_key)
+    );
+    CREATE TABLE IF NOT EXISTS shop_messages (
+      seq BIGSERIAL PRIMARY KEY,id TEXT NOT NULL UNIQUE,conversation_id TEXT NOT NULL REFERENCES shop_conversations(id),
+      sender_id TEXT NOT NULL REFERENCES users(id),client_nonce TEXT NOT NULL,content TEXT NOT NULL CHECK(char_length(content) BETWEEN 1 AND 2000),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(conversation_id,sender_id,client_nonce)
+    );
+    CREATE INDEX IF NOT EXISTS shop_conversations_buyer_idx ON shop_conversations(buyer_id,updated_at DESC);
+    CREATE INDEX IF NOT EXISTS shop_conversations_merchant_idx ON shop_conversations(merchant_id,updated_at DESC);
+    CREATE INDEX IF NOT EXISTS shop_messages_thread_idx ON shop_messages(conversation_id,seq);
+    CREATE INDEX IF NOT EXISTS shop_messages_sender_idx ON shop_messages(sender_id,created_at DESC);
+    ALTER TABLE shop_conversations ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE shop_messages ENABLE ROW LEVEL SECURITY;
+
     CREATE TABLE IF NOT EXISTS product_reviews (
       id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(id), user_id TEXT NOT NULL REFERENCES users(id),
       product_id TEXT NOT NULL, product_title TEXT NOT NULL, spec TEXT,

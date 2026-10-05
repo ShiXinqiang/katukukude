@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import {
+  MessageCircle,
   BarChart3,
   Boxes,
   CheckCircle2,
@@ -25,6 +26,7 @@ import type {
   MerchantRecord,
 } from "../../lib/data";
 
+import {ConversationList,ShopConversation} from "../shop-chat";
 import {StoreSettings} from "./store-settings";
 import {AfterSalesPanel} from "../after-sales-panel";
 import {ShippingDialog,ShipmentInfo,type Shipment} from "../order-shipment";
@@ -32,7 +34,7 @@ import { MerchantProductList } from "./product-list";
 import { ProductEditor } from "./product-editor";
 import { orderLabels } from "../../lib/order-rules";
 
-type Section = "overview" | "products" | "orders" | "store" | "afterSales";
+type Section = "overview" | "products" | "orders" | "store" | "afterSales" | "messages";
 type MerchantOrder = {shipment?:Shipment;
   id: string; orderNo: string; status: string; paymentStatus: string;
   totalAmount: string; displayName: string | null; username: string | null;
@@ -41,6 +43,7 @@ type MerchantOrder = {shipment?:Shipment;
 };
 
 const nav = [
+  {key:"messages" as const,label:"消息",icon:MessageCircle},
   { key: "overview" as const, label: "首页", icon: Home },
   { key: "products" as const, label: "商品", icon: ShoppingBag },
   { key: "orders" as const, label: "订单", icon: ClipboardList },
@@ -58,6 +61,7 @@ async function requestJson<T>(url: string, init?: RequestInit) {
 export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant: MerchantRecord }) {
   const [initialProductFilter,setInitialProductFilter]=useState("all");
   const [shippingOrder,setShippingOrder]=useState<string|null>(null);
+  const [chatId,setChatId]=useState<string|null>(null);
   const [section, setSection] = useState<Section>("overview");
   const [overview, setOverview] = useState<MerchantOverview>({ products: 0, activeProducts: 0, orders: 0, pendingOrders: 0, revenue: 0 });
   const [products, setProducts] = useState<MerchantProductRecord[]>([]);
@@ -129,6 +133,7 @@ export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant
     window.location.assign("/");
   };
 
+  if(chatId)return <ShopConversation key={chatId} id={chatId} onBack={()=>setChatId(null)}/>;
   return (
     <main className="katu-dashboard min-h-screen bg-[#eef2f5] pb-24 text-slate-800">
       <header className="bg-[#667f98] px-4 pb-8 pt-8 text-white">
@@ -179,6 +184,7 @@ export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant
           </section>
         )}
 
+        {section === "messages"&&<ConversationList mode="merchant" onOpen={setChatId}/>}
         {section === "afterSales"&&<AfterSalesPanel mode="merchant"/>}
         {section === "store" && (
           <section className="rounded-2xl bg-white p-5 shadow-sm">
@@ -189,7 +195,7 @@ export function MerchantDashboard({ user, merchant }: { user: AuthUser; merchant
         )}
       </div>
 
-      <nav className="fixed bottom-0 left-1/2 z-40 grid w-full max-w-5xl -translate-x-1/2 grid-cols-5 border-t border-slate-100 bg-white/95 px-3 pb-3 pt-2 backdrop-blur">{nav.map(({ key, label, icon: Icon }) => <button type="button" key={key} onClick={() => setSection(key)} className={`flex flex-col items-center gap-1 text-[10px] ${section === key ? "text-[#667f98]" : "text-slate-400"}`}><Icon size={20} /><span>{label}</span></button>)}</nav>
+      <nav className="fixed bottom-0 left-1/2 z-40 grid w-full max-w-5xl -translate-x-1/2 grid-cols-6 border-t border-slate-100 bg-white/95 px-3 pb-3 pt-2 backdrop-blur">{nav.map(({ key, label, icon: Icon }) => <button type="button" key={key} onClick={() => setSection(key)} className={`flex flex-col items-center gap-1 text-[10px] ${section === key ? "text-[#667f98]" : "text-slate-400"}`}><Icon size={20} /><span>{label}</span></button>)}</nav>
 
       {shippingOrder&&<ShippingDialog error={message} busy={!!loading} onClose={()=>setShippingOrder(null)} onSubmit={value=>void updateOrder(shippingOrder,"ship",value)}/>}
       {showCreate && <ProductEditor onClose={() => setShowCreate(false)} onSaved={async () => { setShowCreate(false); await Promise.all([loadProducts(), loadOverview()]); setMessage("商品草稿已保存或已提交审核"); }} />}{editing && <ProductEditor product={editing} onClose={() => setEditing(null)} onSaved={async () => { setEditing(null); await Promise.all([loadProducts(), loadOverview()]); setMessage("商品资料已更新"); }} />}{deleteCandidate && <div role="dialog" aria-modal="true" className="katu-dashboard-dialog fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-3 sm:items-center"><div className="w-full max-w-sm rounded-3xl bg-white p-5"><h3 className="font-bold">删除商品</h3><p className="mt-2 text-sm text-slate-500">确定删除“{deleteCandidate.title}”吗？此操作不可撤销。</p><div className="mt-5 grid grid-cols-2 gap-2"><button onClick={()=>setDeleteCandidate(null)} className="h-11 rounded-full bg-slate-100">取消</button><button onClick={async()=>{const p=deleteCandidate;setDeleteCandidate(null);await updateProduct(p,"delete")}} className="h-11 rounded-full bg-[#bd6b60] text-white">确认删除</button></div></div></div>}

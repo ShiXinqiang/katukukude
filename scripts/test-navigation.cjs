@@ -7,5 +7,6 @@ const hook=load('components/use-app-navigation.ts',{'react':react,'../lib/naviga
 hook.navigate('service',{serviceName:'更多'});window.scrollY=200;hook.navigate('service',{serviceName:'超市',serviceParent:'更多'});window.scrollY=430;hook.navigate('product',{selectedProductId:'apple'});assert.equal(rendered.selectedProductId,'apple');hook.back();assert.equal(rendered.serviceName,'超市');assert.equal(rendered.scrollY,430);hook.back();assert.equal(rendered.serviceName,'更多');assert.equal(rendered.scrollY,200);
 window.history.state=entries[++index];listeners.popstate({state:window.history.state});assert.equal(rendered.serviceName,'超市');
 hook.navigate('checkout',{checkoutTotal:2900});hook.navigate('addresses');hook.back();assert.equal(rendered.view,'checkout');assert.equal(rendered.checkoutTotal,2900);
+hook.navigate('conversation',{conversationId:'buyer-store-thread'});assert.equal(rendered.conversationId,'buyer-store-thread');hook.back();assert.equal(rendered.view,'checkout');
 hook.replace('home',{depth:0});assert.equal(rendered.depth,0);assert.equal(scrolls[0].behavior,'instant');
 console.log('PASS: nested services, product context, back/forward snapshots, checkout/address return, logout root depth, instant initial scroll. Browser history simulated.');

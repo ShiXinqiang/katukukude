@@ -249,3 +249,26 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 .mall-meta { padding-bottom:6px; }
 :root[data-katu-theme] body .katu-app-shell .mall-photo > button:first-child { padding:0 !important; min-height:0; border-radius:0; }
 :root[data-katu-theme] body .katu-app-shell .mall-photo img { object-fit:contain; background:var(--katu-dialog-inner); }
+
+/* Buyer/store conversations: own scrolling surface and keyboard-safe composer. */
+.shop-chat { position:fixed; inset:0; top:var(--katu-chat-top,0px); margin:0 auto; width:100%; max-width:600px; height:var(--katu-visible-height,100dvh); z-index:45; display:flex; flex-direction:column; background:var(--katu-dialog,#f4f6f8); color:rgb(var(--katu-text,30 41 59)); }
+.shop-chat-header { display:flex; align-items:center; gap:12px; padding:8px 12px; flex-shrink:0; border-bottom:1px solid var(--katu-border,#ddd); }
+.shop-chat-header > button { min-height:44px; min-width:44px; }
+.shop-chat-header > div { flex:1; min-width:0; }
+.shop-chat-header h1 { font-size:15px !important; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.shop-chat-header p { font-size:11px; opacity:.6; margin-top:4px; }
+.shop-chat-context { padding:10px 16px; border-bottom:1px solid var(--katu-border,#ddd); font-size:12px; flex-shrink:0; }
+.shop-chat-context b { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; font-weight:500; }
+.shop-chat-context p { font-size:11px; margin-top:3px; opacity:.65; overflow-wrap:anywhere; }
+.shop-chat-messages { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:14px 12px; }
+.shop-chat-row { display:flex; flex-direction:column; align-items:flex-start; margin-bottom:16px; }
+.shop-chat-row.mine { align-items:flex-end; }
+.shop-chat-row p { max-width:85%; border:1px solid var(--katu-border,#ddd); padding:10px 12px; border-radius:14px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; line-height:1.6; background:var(--katu-dialog-inner,#fff); }
+.shop-chat-row.mine p { background:#ffbf47 !important; color:#30210b !important; border-color:transparent; }
+.shop-chat-row small { margin-top:5px; font-size:10px !important; opacity:.6; }
+.shop-chat-composer { display:flex; align-items:flex-end; gap:8px; padding:10px 12px max(10px,env(safe-area-inset-bottom)); border-top:1px solid var(--katu-border,#ddd); flex-shrink:0; }
+.shop-chat-composer textarea { flex:1; min-width:0; max-height:120px; resize:vertical; border:1px solid var(--katu-border,#ddd); border-radius:12px; padding:10px; font-size:16px !important; background:var(--katu-dialog-inner,#fff); }
+.shop-chat-composer button { display:flex; align-items:center; gap:4px; min-height:44px; padding:0 12px; border-radius:12px; font-size:12px; background:#ffbf47 !important; color:#30210b !important; }
+.shop-chat-composer button:disabled { opacity:.45; }
+.chat-contact-error { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); z-index:60; width:min(90vw,360px); padding:12px; display:flex; gap:12px; justify-content:space-between; border-radius:12px; background:var(--katu-dialog,#fff); border:1px solid var(--katu-border,#ddd); font-size:12px; }
+@media(max-height:500px) { .shop-chat-context { max-height:52px; overflow-y:auto; } }
