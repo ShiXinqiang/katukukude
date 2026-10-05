@@ -52,18 +52,16 @@ export async function GET() {
       [user.id],
     );
     const application = result.rows[0] ? serialize(result.rows[0]) : null;
-    let documents: MerchantDocumentRecord[] = [];
-    if (application?.documentIds.length) {
-      const documentResult = await database.query<MerchantDocumentRecord>(
-        `SELECT id, kind, file_name AS "fileName", file_size AS "fileSize",
-                mime_type AS "mimeType"
-           FROM merchant_application_documents
-          WHERE user_id = $1 AND id = ANY($2::text[])
-          ORDER BY created_at ASC`,
-        [user.id, application.documentIds],
-      );
-      documents = documentResult.rows;
-    }
+    const documentResult = await database.query<MerchantDocumentRecord>(
+      `SELECT id, kind, file_name AS "fileName", file_size AS "fileSize",
+              mime_type AS "mimeType"
+         FROM merchant_application_documents
+        WHERE user_id = $1
+          AND (application_id IS NULL OR id = ANY($2::text[]))
+        ORDER BY created_at ASC`,
+      [user.id, application?.documentIds || []],
+    );
+    const documents = documentResult.rows;
     return NextResponse.json({ application, documents });
   } catch (error) {
     console.error("Merchant application load failed", error);
