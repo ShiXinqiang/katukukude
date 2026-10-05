@@ -50,7 +50,7 @@ export async function verifyPassword(password: string, encoded: string) {
   return stored.length === derived.length && timingSafeEqual(stored, derived);
 }
 
-export async function ensureAuthSchema() {
+async function initializeAuthSchema() {
   const database = getDatabase();
 
   await database.query(`
@@ -181,4 +181,10 @@ export async function deleteCurrentSession() {
 
 export function createUserId() {
   return randomUUID();
+}
+
+let schemaReady: Promise<Awaited<ReturnType<typeof initializeAuthSchema>>> | undefined;
+export function ensureAuthSchema() {
+  if (!schemaReady) schemaReady = initializeAuthSchema().catch(error => { schemaReady = undefined; throw error; });
+  return schemaReady;
 }

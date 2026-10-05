@@ -49,7 +49,7 @@ export default function Page(){
   {view==="addresses"&&<AddressesPage onBack={goBack}/>}
   {view==="homeRoute"&&<HomeRoutePage onBack={goBack} onManage={()=>navigate("addresses")}/>}
   {view==="partner"&&<PartnerPage onBack={goBack}/>}
-  {view==="orders"&&<OrdersPage initialFilter={ordersFilter} onBack={goBack}/>}
+  {view==="orders"&&<OrdersPage onReviews={()=>navigate("likes")} initialFilter={ordersFilter} onBack={goBack}/>}
   {view==="favorites"&&<FavoritesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="likes"&&<LikesPage onBack={goBack} onProduct={openProduct}/>}
   {view==="settings"&&<SettingsPage onBack={goBack} onNavigate={navigate}/>}

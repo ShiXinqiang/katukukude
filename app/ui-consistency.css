@@ -237,3 +237,15 @@ html:has(.katu-dashboard-dialog) { overflow: hidden; }
 :root[data-katu-theme="light"] body .katu-app-shell .mall-price :is(small,strong) { color:#b65316 !important; }
 :root[data-katu-theme="dark"] body .katu-app-shell .mall-price :is(small,strong) { color:#ffbf47 !important; }
 .mall-sort button,.mall-meta { opacity:.7; }
+
+/* Uniform catalog tiles: stable image area and quieter purchase information. */
+.mall-grid { align-items:stretch; }
+.mall-card { display:flex; flex-direction:column; }
+.mall-photo { flex-shrink:0; }
+.mall-card-body { display:flex; flex-direction:column; flex:1; padding:10px 10px 0; }
+.mall-price-row { min-height:34px; }
+.mall-benefits { min-height:20px; }
+.mall-shop { margin-top:auto; min-height:32px; border-top:1px solid var(--katu-border); }
+.mall-meta { padding-bottom:6px; }
+:root[data-katu-theme] body .katu-app-shell .mall-photo > button:first-child { padding:0 !important; min-height:0; border-radius:0; }
+:root[data-katu-theme] body .katu-app-shell .mall-photo img { object-fit:contain; background:var(--katu-dialog-inner); }

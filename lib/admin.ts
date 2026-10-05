@@ -2,7 +2,7 @@ import type { Pool } from "pg";
 import type { AuthUser } from "./data";
 import { ensureAuthSchema, getCurrentUser } from "./auth";
 
-export async function ensureAdminSchema(): Promise<Pool> {
+async function initializeAdminSchema(): Promise<Pool> {
   const database = await ensureAuthSchema();
 
   await database.query(`
@@ -74,4 +74,10 @@ export async function requireAdmin() {
 
 export function isAdminRequiredError(error: unknown) {
   return error instanceof Error && error.message === "ADMIN_REQUIRED";
+}
+
+let schemaReady: Promise<Awaited<ReturnType<typeof initializeAdminSchema>>> | undefined;
+export function ensureAdminSchema() {
+  if (!schemaReady) schemaReady = initializeAdminSchema().catch(error => { schemaReady = undefined; throw error; });
+  return schemaReady;
 }

@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "./admin";
 import { getCurrentUser } from "./auth";
 import type { AuthUser, MerchantRecord } from "./data";
 
-export async function ensureMerchantSchema(): Promise<Pool> {
+async function initializeMerchantSchema(): Promise<Pool> {
   const database = await ensureAdminSchema();
 
   await database.query(`
@@ -161,6 +161,16 @@ export async function ensureMerchantSchema(): Promise<Pool> {
     CREATE UNIQUE INDEX IF NOT EXISTS after_sales_open_order_idx ON after_sales(order_id) WHERE status IN ('requested','approved','refunded');
     ALTER TABLE after_sales ENABLE ROW LEVEL SECURITY;
 
+    CREATE TABLE IF NOT EXISTS product_reviews (
+      id TEXT PRIMARY KEY, order_id TEXT NOT NULL REFERENCES orders(id), user_id TEXT NOT NULL REFERENCES users(id),
+      product_id TEXT NOT NULL, product_title TEXT NOT NULL, spec TEXT,
+      rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5), content TEXT NOT NULL CHECK(char_length(content) BETWEEN 5 AND 2000),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(order_id,product_id)
+    );
+    CREATE INDEX IF NOT EXISTS product_reviews_product_idx ON product_reviews(product_id,created_at DESC);
+    CREATE INDEX IF NOT EXISTS product_reviews_user_idx ON product_reviews(user_id,created_at DESC);
+    ALTER TABLE product_reviews ENABLE ROW LEVEL SECURITY;
+
     CREATE TABLE IF NOT EXISTS commerce_settings (key TEXT PRIMARY KEY,value JSONB NOT NULL,revision INTEGER NOT NULL DEFAULT 1,updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
     ALTER TABLE commerce_settings ENABLE ROW LEVEL SECURITY;
     CREATE TABLE IF NOT EXISTS commerce_audit (id TEXT PRIMARY KEY, actor_id TEXT, target_id TEXT NOT NULL, action TEXT NOT NULL, details JSONB NOT NULL DEFAULT '{}'::jsonb, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
@@ -249,4 +259,10 @@ export function cleanText(value: unknown, max = 200) {
 export function cleanOptionalText(value: unknown, max = 200) {
   const text = cleanText(value, max);
   return text || null;
+}
+
+let schemaReady: Promise<Awaited<ReturnType<typeof initializeMerchantSchema>>> | undefined;
+export function ensureMerchantSchema() {
+  if (!schemaReady) schemaReady = initializeMerchantSchema().catch(error => { schemaReady = undefined; throw error; });
+  return schemaReady;
 }
